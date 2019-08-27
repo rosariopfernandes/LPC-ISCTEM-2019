@@ -1,4 +1,5 @@
 from Lexema import Lexema
+from Identificador import Identificador
 from prettytable import PrettyTable
 
 # Palavras Reservadas
@@ -11,6 +12,7 @@ primitive_types = ['int', 'char', 'double', 'float', 'void']
 symbols = ['+', ';', '-', '*', '/', '=', '==', '{', '}', '[', ']', '(', ')']
 
 lexemas = []
+identificadores = []
 
 # Identificadores só aparecem depois de um tipo de dado ou depois da palavra class
 
@@ -25,8 +27,12 @@ def classify(word, line_number):
             lexemas.append(Lexema(word, 'tipo primitivo', line_number))
         else:
             # print(word + ' não reconhecido')
-            if lexemas[-1].token == 'class' or lexemas[-1].token in primitive_types:
+            if lexemas[-1].token == 'class':
                 lexemas.append(Lexema(word, 'Identificador', line_number))
+                identificadores.append(Identificador(word, 'Classe'))
+            elif lexemas[-1].token in primitive_types:
+                lexemas.append(Lexema(word, 'Identificador', line_number))
+                identificadores.append(Identificador(word, 'Variavel'))
             else:
                 lexemas.append(Lexema(word, 'Não reconhecido', line_number))
 
@@ -50,7 +56,12 @@ for line in lines:
             word += char
     current_line_number += 1
 
-table = PrettyTable(['Token', 'Classificação', 'Linha'])
+table_lexemas = PrettyTable(['Token', 'Classificação', 'Linha'])
 for lexema in lexemas:
-    table.add_row([lexema.token, lexema.classification, str(lexema.line)])
-print(table)
+    table_lexemas.add_row([lexema.token, lexema.classification, str(lexema.line)])
+print(table_lexemas)
+
+table_identificadores = PrettyTable(['ID', 'Categ.'])
+for identificador in identificadores:
+    table_identificadores.add_row([identificador.id, identificador.categoria])
+print(table_identificadores)
