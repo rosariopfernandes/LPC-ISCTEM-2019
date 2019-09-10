@@ -6,10 +6,11 @@ from prettytable import PrettyTable
 reserved_words = ['public', 'class', 'for', 'while', 'do', 'if', 'static', 'private', 'return']
 
 # Tipos primitivos
-primitive_types = ['int', 'char', 'double', 'float', 'void']
+primitive_types = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short', 'long']
 
 # Símbolos Especiais
-symbols = ['+', ';', '-', '*', '/', '=', '==', '{', '}', '[', ']', '(', ')']
+# TODO: classificar divisão (/) tem conflito com comentário de uma linha
+symbols = ['+', '-', '*', '=', '{', '}', '[', ']']
 
 lexemas = []
 identificadores = []
@@ -17,22 +18,47 @@ identificadores = []
 # Identificadores só aparecem depois de um tipo de dado ou depois da palavra class
 
 
+def is_identificador(word: str):
+    for identificador in identificadores:
+        if identificador.id == word:
+            return True
+    return False
+
+
 def classify(word, line_number):
     if word != ' ' and word != '':
         if word in reserved_words:
             # print(word + ' é Palavra Reservada.')
-            lexemas.append(Lexema(word, 'palavra reservada', line_number))
+            lexemas.append(Lexema(word, 'Palavra Reservada', line_number))
         elif word in primitive_types:
             # print(word + ' é Tipo Primitivo.')
-            lexemas.append(Lexema(word, 'tipo primitivo', line_number))
+            lexemas.append(Lexema(word, 'Tipo Primitivo', line_number))
         else:
             # print(word + ' não reconhecido')
             if lexemas[-1].token == 'class':
                 lexemas.append(Lexema(word, 'Identificador', line_number))
-                identificadores.append(Identificador(word, 'Classe'))
+                identificadores.append(Identificador(word, 'Classe', '-', '-', '-', '-', '-', '-', '-', '-'))
             elif lexemas[-1].token in primitive_types:
+                if '(' in word and ')' in word:
+                    # TODO: Remove parenteses
+                    lexemas.append(Lexema(word, 'Identificador', line_number))
+                    categoria = 'Método'
+                    tipo = '-'
+                    forma_passagem = '-'
+                else:
+                    lexemas.append(Lexema(word, 'Identificador', line_number))
+                    categoria = 'Variavel'
+                    tipo = 'Primitivo'
+                    forma_passagem = 'valor'
+                identificadores.append(Identificador(word, categoria, tipo, '', '', '-', '-', forma_passagem, '', ''))
+            elif word.isdigit():
+                lexemas.append(Lexema(word, 'Constante numérica', line_number))
+            elif word == 'true' or word == 'false':
+                lexemas.append(Lexema(word, 'Constante booleana', line_number))
+            elif word.startswith('\'') and word.endswith('\'') and len(word) == 3:
+                lexemas.append(Lexema(word, 'Constante caracter', line_number))
+            elif is_identificador(word):
                 lexemas.append(Lexema(word, 'Identificador', line_number))
-                identificadores.append(Identificador(word, 'Variavel'))
             else:
                 lexemas.append(Lexema(word, 'Não reconhecido', line_number))
 
@@ -42,12 +68,16 @@ current_line_number = 1
 for line in lines:
     word = ''
     for char in line:
-        if char in symbols:
-            # print(char + ' é símbolo especial.')
-            lexemas.append(Lexema(char, 'símbolo especial', current_line_number))
+        if char == '/' and word == '/':
             word = ''
-        elif char == ' ':
+            break
+        if char in symbols:
+            lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
+            word = ''
+        elif char == ' ' or char == ';' or char == ',':
             classify(word, current_line_number)
+            if char != ' ':
+                lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
             word = ''
         elif char.isdigit():
             char = str(char)
@@ -56,12 +86,20 @@ for line in lines:
             word += char
     current_line_number += 1
 
+print()
+print("Tabela de Lexemas")
 table_lexemas = PrettyTable(['Token', 'Classificação', 'Linha'])
 for lexema in lexemas:
     table_lexemas.add_row([lexema.token, lexema.classification, str(lexema.line)])
 print(table_lexemas)
 
-table_identificadores = PrettyTable(['ID', 'Categ.'])
+print()
+print("Tabela de Símbolos")
+table_identificadores = PrettyTable(['ID', 'Categ.', 'Tipo', 'Estrut. Mem.', 'Valor', 'Nr Params', 'Seq. Params',
+                                     'Forma de Passagem', 'Ref', 'Nível'])
 for identificador in identificadores:
-    table_identificadores.add_row([identificador.id, identificador.categoria])
+    table_identificadores.add_row([identificador.id, identificador.categoria, identificador.tipo,
+                                   identificador.estrutura_memoria, identificador.valor, identificador.nr_params,
+                                   identificador.seq_params, identificador.forma_passagem, identificador.ref,
+                                   identificador.nivel])
 print(table_identificadores)
