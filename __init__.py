@@ -17,6 +17,8 @@ identificadores = []
 is_parameter = False
 parameter_count = 0
 parameter_sequence = ''
+variables_count = 1
+last_type = ''
 
 # Identificadores só aparecem depois de um tipo de dado ou depois da palavra class
 
@@ -29,7 +31,7 @@ def is_identificador(word: str):
 
 
 def classify(word, line_number):
-    global parameter_count, parameter_sequence
+    global parameter_count, parameter_sequence, variables_count, last_type
     if word != ' ' and word != '':
         if word in reserved_words:
             # print(word + ' é Palavra Reservada.')
@@ -37,6 +39,7 @@ def classify(word, line_number):
         elif word in primitive_types:
             # print(word + ' é Tipo Primitivo.')
             lexemas.append(Lexema(word, 'Tipo Primitivo', line_number))
+            last_type = word
         else:
             if lexemas[-1].token == 'class':
                 lexemas.append(Lexema(word, 'Identificador', line_number))
@@ -49,15 +52,21 @@ def classify(word, line_number):
                     forma_passagem = 'valor'
                     valor = '-'
                     parameter_count += 1
-                    parameter_sequence += lexemas[-1].token + ', '
+                    parameter_sequence += lexemas[-2].token + ', '
                 else:
                     lexemas.append(Lexema(word, 'Identificador', line_number))
                     categoria = 'Variavel'
                     estrutura_memoria = 'Primitivo'
                     forma_passagem = 'valor'
                     valor = ''
-                identificadores.append(Identificador(word, categoria, lexemas[-1].token, estrutura_memoria, valor, '-',
+                identificadores.append(Identificador(word, categoria, lexemas[-2].token, estrutura_memoria, valor, '-',
                                                      '-', forma_passagem, '', ''))
+            elif lexemas[-1].token == ',':
+                # Várias variáveis na mesma linha
+                variables_count += 1
+                identificadores.append(Identificador(word, 'Variavel', last_type, 'Primitivo', '', '-',
+                                                     '-', 'valor', '', ''))
+                lexemas.append(Lexema(word, 'Identificador', line_number))
             elif word.isdigit():
                 lexemas.append(Lexema(word, 'Constante numérica', line_number))
             elif word == 'true' or word == 'false':
@@ -85,6 +94,9 @@ for line in lines:
             word = ''
         elif char == ' ' or char == ';' or char == ',':
             classify(word, current_line_number)
+            if char == ';':
+                variables_count = 0
+                last_type = ''
             if char != ' ':
                 lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
             word = ''
@@ -107,6 +119,8 @@ for line in lines:
                 lexemas.append(Lexema(word, 'Identificador', current_line_number))
                 word = ''
             lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
+            if parameter_sequence == '':
+                parameter_sequence = '-'
             identificadores[-(parameter_count+1)].seq_params = parameter_sequence
             identificadores[-(parameter_count+1)].nr_params = parameter_count
             parameter_sequence = ''
