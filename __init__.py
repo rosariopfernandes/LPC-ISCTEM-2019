@@ -14,6 +14,9 @@ symbols = ['+', '-', '*', '=', '{', '}', '[', ']']
 
 lexemas = []
 identificadores = []
+is_parameter = False
+parameter_count = 0
+parameter_sequence = ''
 
 # Identificadores só aparecem depois de um tipo de dado ou depois da palavra class
 
@@ -26,6 +29,7 @@ def is_identificador(word: str):
 
 
 def classify(word, line_number):
+    global parameter_count, parameter_sequence
     if word != ' ' and word != '':
         if word in reserved_words:
             # print(word + ' é Palavra Reservada.')
@@ -34,23 +38,26 @@ def classify(word, line_number):
             # print(word + ' é Tipo Primitivo.')
             lexemas.append(Lexema(word, 'Tipo Primitivo', line_number))
         else:
-            # print(word + ' não reconhecido')
             if lexemas[-1].token == 'class':
                 lexemas.append(Lexema(word, 'Identificador', line_number))
                 identificadores.append(Identificador(word, 'Classe', '-', '-', '-', '-', '-', '-', '-', '-'))
             elif lexemas[-1].token in primitive_types:
-                if '(' in word and ')' in word:
-                    # TODO: Remove parenteses
+                if is_parameter:
                     lexemas.append(Lexema(word, 'Identificador', line_number))
-                    categoria = 'Método'
-                    tipo = '-'
-                    forma_passagem = '-'
+                    categoria = 'Parametro'
+                    estrutura_memoria = 'Primitivo'
+                    forma_passagem = 'valor'
+                    valor = '-'
+                    parameter_count += 1
+                    parameter_sequence += lexemas[-1].token + ', '
                 else:
                     lexemas.append(Lexema(word, 'Identificador', line_number))
                     categoria = 'Variavel'
-                    tipo = 'Primitivo'
+                    estrutura_memoria = 'Primitivo'
                     forma_passagem = 'valor'
-                identificadores.append(Identificador(word, categoria, tipo, '', '', '-', '-', forma_passagem, '', ''))
+                    valor = ''
+                identificadores.append(Identificador(word, categoria, lexemas[-1].token, estrutura_memoria, valor, '-',
+                                                     '-', forma_passagem, '', ''))
             elif word.isdigit():
                 lexemas.append(Lexema(word, 'Constante numérica', line_number))
             elif word == 'true' or word == 'false':
@@ -68,7 +75,9 @@ current_line_number = 1
 for line in lines:
     word = ''
     for char in line:
+
         if char == '/' and word == '/':
+            # Comentário de uma linha. Vamos à próxima linha
             word = ''
             break
         if char in symbols:
@@ -78,6 +87,31 @@ for line in lines:
             classify(word, current_line_number)
             if char != ' ':
                 lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
+            word = ''
+        elif char == '(' and lexemas[-1].token in primitive_types:
+            # Início de um método.
+            identificadores.append(Identificador(word, 'Método', lexemas[-1].token, 'Primitivo', '-', parameter_count,
+                                                 parameter_sequence, '-', '', ''))
+            lexemas.append(Lexema(word, 'Identificador', current_line_number))
+            lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
+            # Vamos procurar parametros
+            word = ''
+            is_parameter = True
+        elif char == ')':
+            if lexemas[-1].token in primitive_types:
+                # Temos um parametro
+                identificadores.append(Identificador(word, 'Parametro', lexemas[-1].token, 'Primitivo', '-',
+                                                     '-', '-', 'valor', '', ''))
+                parameter_count += 1
+                parameter_sequence += lexemas[-1].token
+                lexemas.append(Lexema(word, 'Identificador', current_line_number))
+                word = ''
+            lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
+            identificadores[-(parameter_count+1)].seq_params = parameter_sequence
+            identificadores[-(parameter_count+1)].nr_params = parameter_count
+            parameter_sequence = ''
+            parameter_count = 0
+            is_parameter = False
             word = ''
         elif char.isdigit():
             char = str(char)
