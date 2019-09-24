@@ -19,6 +19,17 @@ parameter_count = 0
 parameter_sequence = ''
 variables_count = 1
 last_type = ''
+nivel = 0.0
+
+
+def get_indentation(line: str):
+    indentation = 0
+    for char in line:
+        if char == ' ':
+            indentation += 1
+        else:
+            break
+    return indentation
 
 
 def index_of_identificador(identificador: str):
@@ -55,7 +66,7 @@ def classify(word, line_number):
         else:
             if lexemas[-1].token == 'class':
                 lexemas.append(Lexema(word, 'Identificador', line_number))
-                identificadores.append(Identificador(word, 'Classe', '-', '-', '-', '-', '-', '-', '-', '-'))
+                identificadores.append(Identificador(word, 'Classe', '-', '-', '-', '-', '-', '-', '-', str(nivel)))
             elif lexemas[-1].token in primitive_types:
                 if is_parameter:
                     lexemas.append(Lexema(word, 'Identificador', line_number))
@@ -72,12 +83,12 @@ def classify(word, line_number):
                     forma_passagem = 'Valor'
                     valor = '-'
                 identificadores.append(Identificador(word, categoria, lexemas[-2].token, estrutura_memoria, valor, '-',
-                                                     '-', forma_passagem, '', ''))
+                                                     '-', forma_passagem, '', str(nivel)))
             elif lexemas[-1].token == ',':
                 # Várias variáveis na mesma linha
                 variables_count += 1
                 identificadores.append(Identificador(word, 'Variavel', last_type, 'Primitivo', '-', '-',
-                                                     '-', 'Valor', '', ''))
+                                                     '-', 'Valor', '', str(nivel)))
                 lexemas.append(Lexema(word, 'Identificador', line_number))
             elif word.isdigit():
                 verificar_valor()
@@ -98,9 +109,12 @@ def classify(word, line_number):
 lines = [line.rstrip('\n') for line in open('Exemplo1.java')]
 current_line_number = 1
 for line in lines:
+    nivel = get_indentation(line) / 40
+    # TODO: round this value
+    if nivel > 0.0:
+        nivel -= 0.1
     word = ''
     for char in line:
-
         if char == '/' and word == '/':
             # Comentário de uma linha. Vamos à próxima linha
             word = ''
@@ -119,7 +133,7 @@ for line in lines:
         elif char == '(' and lexemas[-1].token in primitive_types:
             # Início de um método.
             identificadores.append(Identificador(word, 'Método', lexemas[-1].token, 'Primitivo', '-', parameter_count,
-                                                 parameter_sequence, '-', '', ''))
+                                                 parameter_sequence, '-', '', str(nivel)))
             lexemas.append(Lexema(word, 'Identificador', current_line_number))
             lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
             # Vamos procurar parametros
@@ -129,7 +143,7 @@ for line in lines:
             if lexemas[-1].token in primitive_types:
                 # Temos um parametro
                 identificadores.append(Identificador(word, 'Parametro', lexemas[-1].token, 'Primitivo', '-',
-                                                     '-', '-', 'valor', '', ''))
+                                                     '-', '-', 'valor', '', str(nivel)))
                 parameter_count += 1
                 parameter_sequence += lexemas[-1].token
                 lexemas.append(Lexema(word, 'Identificador', current_line_number))
