@@ -20,7 +20,12 @@ parameter_sequence = ''
 variables_count = 1
 last_type = ''
 
-# Identificadores só aparecem depois de um tipo de dado ou depois da palavra class
+
+def index_of_identificador(identificador: str):
+    for i in range(0, len(identificadores)):
+        if identificadores[i].id == identificador:
+            return i
+    return -1
 
 
 def is_identificador(word: str):
@@ -28,6 +33,13 @@ def is_identificador(word: str):
         if identificador.id == word:
             return True
     return False
+
+
+def verificar_valor():
+    if lexemas[-1].token == '=':
+        indice_identificador = index_of_identificador(lexemas[-2].token)
+        if indice_identificador != -1:
+            identificadores[indice_identificador].valor = word
 
 
 def classify(word, line_number):
@@ -57,21 +69,25 @@ def classify(word, line_number):
                     lexemas.append(Lexema(word, 'Identificador', line_number))
                     categoria = 'Variavel'
                     estrutura_memoria = 'Primitivo'
-                    forma_passagem = 'valor'
-                    valor = ''
+                    forma_passagem = 'Valor'
+                    valor = '-'
                 identificadores.append(Identificador(word, categoria, lexemas[-2].token, estrutura_memoria, valor, '-',
                                                      '-', forma_passagem, '', ''))
             elif lexemas[-1].token == ',':
                 # Várias variáveis na mesma linha
                 variables_count += 1
-                identificadores.append(Identificador(word, 'Variavel', last_type, 'Primitivo', '', '-',
-                                                     '-', 'valor', '', ''))
+                identificadores.append(Identificador(word, 'Variavel', last_type, 'Primitivo', '-', '-',
+                                                     '-', 'Valor', '', ''))
                 lexemas.append(Lexema(word, 'Identificador', line_number))
             elif word.isdigit():
+                verificar_valor()
                 lexemas.append(Lexema(word, 'Constante numérica', line_number))
             elif word == 'true' or word == 'false':
+                verificar_valor()
                 lexemas.append(Lexema(word, 'Constante booleana', line_number))
             elif word.startswith('\'') and word.endswith('\'') and len(word) == 3:
+                # Verificar se esta constante está a ser atribuida à uma variável
+                verificar_valor()
                 lexemas.append(Lexema(word, 'Constante caracter', line_number))
             elif is_identificador(word):
                 lexemas.append(Lexema(word, 'Identificador', line_number))
