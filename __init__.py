@@ -9,8 +9,8 @@ reserved_words = ['public', 'class', 'for', 'while', 'do', 'if', 'static', 'priv
 primitive_types = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short', 'long']
 
 # Símbolos Especiais
-# TODO: classificar divisão (/) tem conflito com comentário de uma linha
-symbols = ['+', '-', '*', '=', '{', '}', '[', ']']
+# TODO: classificar multiplicacao(*) e divisão (/). Tem conflito com comentários
+symbols = ['+', '-', '=', '{', '}', '[', ']']
 
 lexemas = []
 identificadores = []
@@ -108,6 +108,9 @@ def classify(word, line_number):
 
 lines = [line.rstrip('\n') for line in open('Exemplo1.java')]
 current_line_number = 1
+
+is_comentario = False
+
 for line in lines:
     nivel = get_indentation(line) / 40
     # TODO: round this value
@@ -115,6 +118,22 @@ for line in lines:
         nivel -= 0.1
     word = ''
     for char in line:
+        # Verificar se o comentário termina nesta linha
+        if line.find('*/') != -1:
+            is_comentario = False
+            break
+        if is_comentario:
+            # Ainda estamos em um comentário de várias linhas. Vamos saltar
+            word = ''
+            break
+        if char == '*' and word == '/':
+            # Comentário de várias linhas. Vamos procurar onde termina
+            is_comentario = True
+            word = ''
+            # Verificar se termina na mesma linha
+            if line.find('*/') != -1:
+                is_comentario = False
+            break
         if char == '/' and word == '/':
             # Comentário de uma linha. Vamos à próxima linha
             word = ''
