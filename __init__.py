@@ -1,6 +1,7 @@
 from Lexema import Lexema
 from Identificador import Identificador
 from prettytable import PrettyTable
+import nltk
 
 # Palavras Reservadas
 reserved_words = ['public', 'class', 'for', 'while', 'do', 'if', 'static', 'private', 'return']
@@ -106,7 +107,7 @@ def classify(word, line_number):
                 lexemas.append(Lexema(word, 'Não reconhecido', line_number))
 
 
-lines = [line.rstrip('\n') for line in open('Exemplo1.java')]
+lines = [line.rstrip('\n') for line in open('Ex.java')]
 current_line_number = 1
 
 is_comentario = False
@@ -200,3 +201,80 @@ for identificador in identificadores:
                                    identificador.seq_params, identificador.forma_passagem, identificador.ref,
                                    identificador.nivel])
 print(table_identificadores)
+
+# Declaração de variáveis do tipo primitivo (locais ou globais)
+# instruções de atribuições simples
+# Funções sem retorno
+# Funções com retorno
+# Estruturas de controlo (if e while)
+
+test_grammar = nltk.CFG.fromstring(
+    """
+    declaracao_classe -> "public" "class" identificador inicio_bloco corpo_classe fim_bloco
+    
+    corpo_classe -> declaracao_variavel
+    corpo_classe -> declaracao_metodo
+    corpo_classe -> corpo_classe declaracao_variavel
+    corpo_classe -> corpo_classe declaracao_metodo
+
+    declaracao_metodo -> tipo_dado identificador '(' ')' inicio_bloco corpo_metodo fim_bloco
+    
+    corpo_metodo -> 
+    corpo_metodo -> declaracao_variavel
+    corpo_metodo -> atribuicao_variavel
+    corpo_metodo -> chamada_metodo
+    corpo_metodo -> corpo_metodo declaracao_variavel
+    corpo_metodo -> corpo_metodo atribuicao_variavel
+    corpo_metodo -> corpo_metodo chamada_metodo
+
+    declaracao_variavel -> tipo_dado identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    
+    atribuicao_variavel -> identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    
+    tipo_dado -> tipo_dado_com_retorno | tipo_dado_sem_retorno
+    tipo_dado_com_retorno -> "int" | "char" | "byte" | "long" | "short" | "boolean"
+    tipo_dado_sem_retorno -> "void"
+    
+    chamada_metodo -> identificador '(' ')' simbolo_fim_instrucao
+    
+    inicio_bloco -> '{'
+    simbolo_atribuicao -> '='
+    simbolo_fim_instrucao -> ';'
+    fim_bloco -> '}'
+
+    identificador -> inicio_identificador
+    identificador -> inicio_identificador corpo_identificador
+    inicio_identificador -> '_' | letra
+    corpo_identificador -> '_' | letra | constante_inteira
+    corpo_identificador -> corpo_identificador palavra
+    
+    palavra -> letra
+    palavra -> palavra letra
+    letra -> 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
+    letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+    
+    valor -> constante_inteira
+    
+    constante_inteira -> digito
+    constante_inteira -> constante_inteira digito
+    digito -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+    """
+)
+
+
+def analyzeLexemas():
+    sentence = []
+    for lexema in lexemas:
+        # Separar caracteres no caso de identificadores ou constantes
+        if lexema.classification == 'Identificador' or (lexema.classification.startswith('Constante')):
+            for char in lexema.token:
+                sentence.append(char)
+        else:
+            sentence.append(lexema.token)
+    parser = nltk.ChartParser(test_grammar)
+    # sentence = ['public', 'class', "E", "{", "int", "a", "=", "0", ";", "}"]
+    for tree in parser.parse(sentence):
+        print(tree)
+
+
+analyzeLexemas()
