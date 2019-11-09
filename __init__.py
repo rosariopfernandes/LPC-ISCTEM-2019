@@ -2,7 +2,7 @@ from lexeme_table import LexemeTable
 from identificador import Identificador
 import outputs
 import lexical_analysis
-import pascal
+from pascal_converter import PascalConverter
 from java_grammar import RESERVED_WORDS, PRIMITIVE_TYPES, SYMBOLS, CONTEXT_FREE_GRAMMAR
 
 
@@ -203,4 +203,4 @@ outputs.print_symbol_table(identificadores)
 parse_result = lexical_analysis.execute(_lexeme_table, CONTEXT_FREE_GRAMMAR)
 
 if parse_result:
-    pascal.print_corresponding_code(parse_result)
+    PascalConverter().print_corresponding_code(parse_result)
