@@ -1,7 +1,7 @@
-from Lexema import Lexema
-from Identificador import Identificador
-from prettytable import PrettyTable
+from lexema import Lexema
+from identificador import Identificador
 import nltk
+import outputs
 from nltk.grammar import Production
 
 # Palavras Reservadas
@@ -14,8 +14,10 @@ primitive_types = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short',
 # TODO: classificar multiplicacao(*) e divisão (/). Tem conflito com comentários
 symbols = ['+', '-', '=', '{', '}', '[', ']']
 
+# Tabelas
 lexemas = []
 identificadores = []
+
 is_parameter = False
 parameter_count = 0
 parameter_sequence = ''
@@ -190,23 +192,9 @@ for line in lines:
             word += char
     current_line_number += 1
 
-print()
-print("Tabela de Lexemas")
-table_lexemas = PrettyTable(['Token', 'Classificação', 'Linha'])
-for lexema in lexemas:
-    table_lexemas.add_row([lexema.token, lexema.classification, str(lexema.line)])
-print(table_lexemas)
+outputs.print_lexema_table(lexemas)
 
-print()
-print("Tabela de Símbolos")
-table_identificadores = PrettyTable(['ID', 'Categ.', 'Tipo', 'Estrut. Mem.', 'Valor', 'Nr Params', 'Seq. Params',
-                                     'Forma de Passagem', 'Ref', 'Nível'])
-for identificador in identificadores:
-    table_identificadores.add_row([identificador.id, identificador.categoria, identificador.tipo,
-                                   identificador.estrutura_memoria, identificador.valor, identificador.nr_params,
-                                   identificador.seq_params, identificador.forma_passagem, identificador.ref,
-                                   identificador.nivel])
-print(table_identificadores)
+outputs.print_symbol_table(identificadores)
 
 # Declaração de variáveis do tipo primitivo (locais ou globais)
 # instruções de atribuições simples
