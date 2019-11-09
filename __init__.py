@@ -1,18 +1,10 @@
 from lexeme_table import LexemeTable
 from identificador import Identificador
-import nltk
 import outputs
+from java_grammar import RESERVED_WORDS, PRIMITIVE_TYPES, SYMBOLS, CONTEXT_FREE_GRAMMAR
+from nltk import ChartParser
 from nltk.grammar import Production
 
-# Palavras Reservadas
-reserved_words = ['public', 'class', 'for', 'while', 'if', 'static', 'private', 'return']
-
-# Tipos primitivos
-primitive_types = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short', 'long']
-
-# Símbolos Especiais
-# TODO: classificar multiplicacao(*) e divisão (/). Tem conflito com comentários
-symbols = ['+', '-', '=', '{', '}', '[', ']']
 
 # Tabelas
 _lexeme_table = LexemeTable()
@@ -60,16 +52,16 @@ def verificar_valor():
 def classify(word, line_number):
     global parameter_count, parameter_sequence, variables_count, last_type
     if word != ' ' and word != '':
-        if word in reserved_words:
+        if word in RESERVED_WORDS:
             _lexeme_table.add_reserved_word(word, line_number)
-        elif word in primitive_types:
+        elif word in PRIMITIVE_TYPES:
             _lexeme_table.add_primitive_type(word, line_number)
             last_type = word
         else:
             if _lexeme_table.get_last_token() == 'class':
                 _lexeme_table.add_identifier(word, line_number)
                 identificadores.append(Identificador(identifier=word, category='Classe', level=str(nivel)))
-            elif _lexeme_table.get_last_token() in primitive_types:
+            elif _lexeme_table.get_last_token() in PRIMITIVE_TYPES:
                 if is_parameter:
                     _lexeme_table.add_identifier(word, line_number)
                     categoria = 'Parametro'
@@ -144,7 +136,7 @@ for line in lines:
             # Comentário de uma linha. Vamos à próxima linha
             word = ''
             break
-        if char in symbols:
+        if char in SYMBOLS:
             _lexeme_table.add_special_symbol(char, current_line_number)
             word = ''
         elif char == ' ' or char == ';' or char == ',':
@@ -155,7 +147,7 @@ for line in lines:
             if char != ' ':
                 _lexeme_table.add_special_symbol(char, current_line_number)
             word = ''
-        elif char == '(' and _lexeme_table.get_last_token() in primitive_types:
+        elif char == '(' and _lexeme_table.get_last_token() in PRIMITIVE_TYPES:
             # Início de um método.
             identificadores.append(Identificador(identifier=word, category='Método',
                                                  data_type=_lexeme_table.get_last_token(),
@@ -172,7 +164,7 @@ for line in lines:
             # Vamos procurar parametros
             word = ''
         elif char == ')':
-            if _lexeme_table.get_last_token() in primitive_types:
+            if _lexeme_table.get_last_token() in PRIMITIVE_TYPES:
                 # Temos um parametro
                 identificadores.append(Identificador(identifier=word, category='Parametro',
                                                      data_type=_lexeme_table.get_last_token(),
@@ -208,61 +200,6 @@ outputs.print_symbol_table(identificadores)
 # Funções com retorno
 # Estruturas de controlo (if e while)
 
-test_grammar = nltk.CFG.fromstring(
-    """
-    declaracao_classe -> "public" "class" identificador inicio_bloco corpo_classe fim_bloco
-    
-    corpo_classe -> declaracao_variavel
-    corpo_classe -> declaracao_metodo
-    corpo_classe -> corpo_classe declaracao_variavel
-    corpo_classe -> corpo_classe declaracao_metodo
-
-    declaracao_metodo -> tipo_dado identificador '(' ')' inicio_bloco corpo_metodo fim_bloco
-    
-    corpo_metodo -> 
-    corpo_metodo -> declaracao_variavel
-    corpo_metodo -> atribuicao_variavel
-    corpo_metodo -> chamada_metodo
-    corpo_metodo -> corpo_metodo declaracao_variavel
-    corpo_metodo -> corpo_metodo atribuicao_variavel
-    corpo_metodo -> corpo_metodo chamada_metodo
-
-    declaracao_variavel -> tipo_dado identificador simbolo_fim_instrucao
-    declaracao_variavel -> tipo_dado identificador simbolo_atribuicao valor simbolo_fim_instrucao
-    
-    atribuicao_variavel -> identificador simbolo_atribuicao valor simbolo_fim_instrucao
-    
-    tipo_dado -> tipo_dado_com_retorno | tipo_dado_sem_retorno
-    tipo_dado_com_retorno -> "int" | "char" | "byte" | "long" | "short" | "boolean"
-    tipo_dado_sem_retorno -> "void"
-    
-    chamada_metodo -> identificador '(' ')' simbolo_fim_instrucao
-    
-    inicio_bloco -> '{'
-    simbolo_separador -> ','
-    simbolo_atribuicao -> '='
-    simbolo_fim_instrucao -> ';'
-    fim_bloco -> '}'
-
-    identificador -> inicio_identificador
-    identificador -> inicio_identificador corpo_identificador
-    inicio_identificador -> '_' | letra
-    corpo_identificador -> '_' | letra | constante_inteira
-    corpo_identificador -> corpo_identificador palavra
-    
-    palavra -> letra
-    palavra -> palavra letra
-    letra -> 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
-    letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
-    
-    valor -> constante_inteira
-    
-    constante_inteira -> digito
-    constante_inteira -> constante_inteira digito
-    digito -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
-    """
-)
-
 
 def analyzeLexemas():
     sentence = []
@@ -273,7 +210,7 @@ def analyzeLexemas():
                 sentence.append(char)
         else:
             sentence.append(lexema.token)
-    parser = nltk.ChartParser(test_grammar)
+    parser = ChartParser(CONTEXT_FREE_GRAMMAR)
     parse_result = parser.parse(sentence)
 
     tree = list(parse_result)[0]
