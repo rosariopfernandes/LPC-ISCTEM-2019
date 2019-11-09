@@ -2,9 +2,7 @@ from Lexema import Lexema
 from Identificador import Identificador
 from prettytable import PrettyTable
 import nltk
-from nltk import Tree
 from nltk.grammar import Production
-from nltk.grammar import Nonterminal
 
 # Palavras Reservadas
 reserved_words = ['public', 'class', 'for', 'while', 'if', 'static', 'private', 'return']
@@ -342,43 +340,6 @@ def analyzeLexemas():
             # TODO: Support valor com mais de um digito
             valorVar = productions[i+7].rhs()[0]
             print(identificadorVar + ' := ' + valorVar + ';')
-
-        # if item.lhs().symbol() == 'identificador':
-        #     print('Identificador')
-        # if item.lhs().symbol() == 'declaracao_variavel':
-        #     print('Variável')
-        #     print(item.rhs())
-        # if item.lhs().symbol() == 'declaracao_metodo':
-        #     print('Método')
-        # print(item.lhs().symbol())  # This is a string
-        # print('Tuple:', tuple(item.rhs()))
-
-
-
-    # if tree.label() == 'declaracao_classe':
-    #     print(tree.label(), tree.leaves())
-    #     print('_')
-    #     for item in list(tree.productions()):
-    #         if type(item) == Production:
-    #             # if item.label() == 'corpo_classe':
-    #             #     declaracoes = list(item)
-    #             #     for declaracao in declaracoes:
-    #             #         print(declaracao.label())
-    #             # print(item.lhs())
-    #             print('L:', item.lhs(), 'R:', item.rhs())
-    #         else:
-    #             print(item)
-    # else:
-    #     print('Declaração de classe não encontrada.')
-        # xemplo = Tree.fromstring(str(list(tree)))
-        # print(str(tree))
-    # parsed_instructions = list(parser.parse(sentence))
-    # print(parsed_instructions)
-
-    # test = ''
-    # for tree in parser.parse(sentence):
-    #     test += str(tree)
-    #     print(Tree.fromstring(test))
 
 
 analyzeLexemas()
