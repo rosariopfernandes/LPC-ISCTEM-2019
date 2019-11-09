@@ -1,25 +1,24 @@
 class Identificador(object):
-    id: str
-    categoria: str
-    tipo: str
-    estrutura_memoria: str
-    valor: str
-    nr_params: int
-    seq_params: str
-    forma_passagem: str
-    ref: str
-    nivel: str
+    identifier: str
+    category: str
+    data_type: str
+    memory_structure: str
+    value: str
+    params_nr: int
+    params_sequence: str
+    evaluation_strategy: str
+    reference: str
+    level: str
 
-    def __init__(self, id, categoria, tipo, estrutura_memoria, valor, nr_params,
-                 seq_params, forma_passagem, ref, nivel):
-        self.id = id
-        self.categoria = categoria
-        self.tipo = tipo
-        self.estrutura_memoria = estrutura_memoria
-        self.valor = valor
-        self.nr_params = nr_params
-        self.seq_params = seq_params
-        self.forma_passagem = forma_passagem
-        self.ref = ref
-        self.nivel = nivel
-
+    def __init__(self, identifier='-', category='-', data_type='-', memory_structure='-', value='-', params_nr='-',
+                 params_sequence='-', evaluation_strategy='-', reference='-', level='-'):
+        self.identifier = identifier
+        self.category = category
+        self.data_type = data_type
+        self.memory_structure = memory_structure
+        self.value = value
+        self.params_nr = params_nr
+        self.params_sequence = params_sequence
+        self.evaluation_strategy = evaluation_strategy
+        self.reference = reference
+        self.level = level

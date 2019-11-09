@@ -16,8 +16,8 @@ def print_symbol_table(identificadores: list):
     table_identificadores = PrettyTable(['ID', 'Categ.', 'Tipo', 'Estrut. Mem.', 'Valor', 'Nr Params', 'Seq. Params',
                                          'Forma de Passagem', 'Ref', 'Nível'])
     for identificador in identificadores:
-        table_identificadores.add_row([identificador.id, identificador.categoria, identificador.tipo,
-                                       identificador.estrutura_memoria, identificador.valor, identificador.nr_params,
-                                       identificador.seq_params, identificador.forma_passagem, identificador.ref,
-                                       identificador.nivel])
+        table_identificadores.add_row([identificador.identifier, identificador.category, identificador.data_type,
+                                       identificador.memory_structure, identificador.value, identificador.params_nr,
+                                       identificador.params_sequence, identificador.evaluation_strategy,
+                                       identificador.reference, identificador.level])
     print(table_identificadores)
