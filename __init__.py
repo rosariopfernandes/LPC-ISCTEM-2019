@@ -1,9 +1,13 @@
 from Lexema import Lexema
 from Identificador import Identificador
 from prettytable import PrettyTable
+import nltk
+from nltk import Tree
+from nltk.grammar import Production
+from nltk.grammar import Nonterminal
 
 # Palavras Reservadas
-reserved_words = ['public', 'class', 'for', 'while', 'do', 'if', 'static', 'private', 'return']
+reserved_words = ['public', 'class', 'for', 'while', 'if', 'static', 'private', 'return']
 
 # Tipos primitivos
 primitive_types = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short', 'long']
@@ -106,7 +110,7 @@ def classify(word, line_number):
                 lexemas.append(Lexema(word, 'Não reconhecido', line_number))
 
 
-lines = [line.rstrip('\n') for line in open('Exemplo1.java')]
+lines = [line.rstrip('\n') for line in open('Ex.java')]
 current_line_number = 1
 
 is_comentario = False
@@ -158,6 +162,11 @@ for line in lines:
             # Vamos procurar parametros
             word = ''
             is_parameter = True
+        elif char == '(' and (lexemas[-1].token == 'if' or lexemas[-1].token == 'while'):
+            # Abriu uma estrutura de controlo
+            lexemas.append(Lexema(char, 'Símbolo especial', current_line_number))
+            # Vamos procurar parametros
+            word = ''
         elif char == ')':
             if lexemas[-1].token in primitive_types:
                 # Temos um parametro
@@ -200,3 +209,176 @@ for identificador in identificadores:
                                    identificador.seq_params, identificador.forma_passagem, identificador.ref,
                                    identificador.nivel])
 print(table_identificadores)
+
+# Declaração de variáveis do tipo primitivo (locais ou globais)
+# instruções de atribuições simples
+# Funções sem retorno
+# Funções com retorno
+# Estruturas de controlo (if e while)
+
+test_grammar = nltk.CFG.fromstring(
+    """
+    declaracao_classe -> "public" "class" identificador inicio_bloco corpo_classe fim_bloco
+    
+    corpo_classe -> declaracao_variavel
+    corpo_classe -> declaracao_metodo
+    corpo_classe -> corpo_classe declaracao_variavel
+    corpo_classe -> corpo_classe declaracao_metodo
+
+    declaracao_metodo -> tipo_dado identificador '(' ')' inicio_bloco corpo_metodo fim_bloco
+    
+    corpo_metodo -> 
+    corpo_metodo -> declaracao_variavel
+    corpo_metodo -> atribuicao_variavel
+    corpo_metodo -> chamada_metodo
+    corpo_metodo -> corpo_metodo declaracao_variavel
+    corpo_metodo -> corpo_metodo atribuicao_variavel
+    corpo_metodo -> corpo_metodo chamada_metodo
+
+    declaracao_variavel -> tipo_dado identificador simbolo_fim_instrucao
+    declaracao_variavel -> tipo_dado identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    
+    atribuicao_variavel -> identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    
+    tipo_dado -> tipo_dado_com_retorno | tipo_dado_sem_retorno
+    tipo_dado_com_retorno -> "int" | "char" | "byte" | "long" | "short" | "boolean"
+    tipo_dado_sem_retorno -> "void"
+    
+    chamada_metodo -> identificador '(' ')' simbolo_fim_instrucao
+    
+    inicio_bloco -> '{'
+    simbolo_separador -> ','
+    simbolo_atribuicao -> '='
+    simbolo_fim_instrucao -> ';'
+    fim_bloco -> '}'
+
+    identificador -> inicio_identificador
+    identificador -> inicio_identificador corpo_identificador
+    inicio_identificador -> '_' | letra
+    corpo_identificador -> '_' | letra | constante_inteira
+    corpo_identificador -> corpo_identificador palavra
+    
+    palavra -> letra
+    palavra -> palavra letra
+    letra -> 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
+    letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+    
+    valor -> constante_inteira
+    
+    constante_inteira -> digito
+    constante_inteira -> constante_inteira digito
+    digito -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+    """
+)
+
+
+def analyzeLexemas():
+    sentence = []
+    for lexema in lexemas:
+        # Separar caracteres no caso de identificadores ou constantes
+        if lexema.classification == 'Identificador' or (lexema.classification.startswith('Constante')):
+            for char in lexema.token:
+                sentence.append(char)
+        else:
+            sentence.append(lexema.token)
+    parser = nltk.ChartParser(test_grammar)
+    parse_result = parser.parse(sentence)
+
+    tree = list(parse_result)[0]
+    productions = list(tree.productions())
+    for i in range(len(productions)):
+        item: Production = productions[i]
+        # print(i, ': ', item)
+        if item.lhs().symbol() == 'declaracao_classe':
+            # TODO: Accept more than 2 chracters in class name
+            print('program ' + productions[i+3].rhs()[0] + productions[i+5].rhs()[0] + ';')
+            print()
+            # ntIdentificador: Nonterminal = item.rhs()[2]
+            # print(item.rhs())
+            # print(type(item.rhs()[2]))
+        if item.lhs().symbol() == 'inicio_bloco':
+            print('begin')
+        if item.lhs().symbol() == 'fim_bloco':
+            # TODO: Check if its the last one
+            if i == len(productions) - 1:
+                print('end.')
+            else:
+                print('end;')
+            print()
+        if item.lhs().symbol() == 'declaracao_variavel':
+            if len(item.rhs()) == 5:
+                # Declaração com atribuição
+                tipo_dado = productions[i+2].rhs()[0]
+                # TODO: Support identificador with more than 1 letter
+                identificador = productions[i+5].rhs()[0]
+                simbolo_atribuicao = ':='
+                # TODO: Support valor with more than 1 digito
+                valor = productions[i+9].rhs()[0]
+                simbolo_fim_instrucao = ';'
+            else:
+                # Declaração simples
+                tipo_dado = productions[i+2].rhs()[0]
+                # TODO: Support identificador with more than 1 letter
+                identificador = productions[i+5].rhs()[0]
+                simbolo_atribuicao = ''
+                valor = ''
+                simbolo_fim_instrucao = ';'
+            # print(item.rhs())
+            print('var')
+            print(identificador + ': ' + tipo_dado + ' ' + simbolo_atribuicao + ' ' + valor + simbolo_fim_instrucao)
+        if item.lhs().symbol() == 'declaracao_metodo':
+            # Com retorno ou sem retorno?
+            if productions[i+2].lhs().symbol() == 'tipo_dado_sem_retorno':
+                # TODO: Support identificador com mais de uma letra
+                identificadorMetodo = productions[i+5].rhs()[0]
+                # TODO: Support method arguments
+                print()
+                print('procedure ' + identificadorMetodo + '();')
+            else:
+                print('function')
+        if item.lhs().symbol() == 'atribuicao_variavel':
+            # TODO: Support identificador com mais de uma letra
+            identificadorVar = productions[i+3].rhs()[0]
+            # TODO: Support valor com mais de um digito
+            valorVar = productions[i+7].rhs()[0]
+            print(identificadorVar + ' := ' + valorVar + ';')
+
+        # if item.lhs().symbol() == 'identificador':
+        #     print('Identificador')
+        # if item.lhs().symbol() == 'declaracao_variavel':
+        #     print('Variável')
+        #     print(item.rhs())
+        # if item.lhs().symbol() == 'declaracao_metodo':
+        #     print('Método')
+        # print(item.lhs().symbol())  # This is a string
+        # print('Tuple:', tuple(item.rhs()))
+
+
+
+    # if tree.label() == 'declaracao_classe':
+    #     print(tree.label(), tree.leaves())
+    #     print('_')
+    #     for item in list(tree.productions()):
+    #         if type(item) == Production:
+    #             # if item.label() == 'corpo_classe':
+    #             #     declaracoes = list(item)
+    #             #     for declaracao in declaracoes:
+    #             #         print(declaracao.label())
+    #             # print(item.lhs())
+    #             print('L:', item.lhs(), 'R:', item.rhs())
+    #         else:
+    #             print(item)
+    # else:
+    #     print('Declaração de classe não encontrada.')
+        # xemplo = Tree.fromstring(str(list(tree)))
+        # print(str(tree))
+    # parsed_instructions = list(parser.parse(sentence))
+    # print(parsed_instructions)
+
+    # test = ''
+    # for tree in parser.parse(sentence):
+    #     test += str(tree)
+    #     print(Tree.fromstring(test))
+
+
+analyzeLexemas()
