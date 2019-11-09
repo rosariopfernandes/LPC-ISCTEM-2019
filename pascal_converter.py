@@ -7,7 +7,7 @@ class PascalConverter(object):
     def __init__(self):
         self.indentation = 0
 
-    def get_indentation(self):
+    def _get_indentation(self):
         indentation_str = ''
         if self.indentation > 0:
             for i in range(0, self.indentation):
@@ -59,7 +59,7 @@ class PascalConverter(object):
                     simbolo_fim_instrucao = ';'
                 # print(item.rhs())
                 print('var')
-                print(self.get_indentation() + identificador + ': ' + tipo_dado + ' ' + simbolo_atribuicao + ' ' +
+                print(self._get_indentation() + identificador + ': ' + tipo_dado + ' ' + simbolo_atribuicao + ' ' +
                       valor + simbolo_fim_instrucao)
             if item.lhs().symbol() == 'declaracao_metodo':
                 # Com retorno ou sem retorno?
@@ -76,4 +76,4 @@ class PascalConverter(object):
                 identificadorVar = productions[i + 3].rhs()[0]
                 # TODO: Support valor com mais de um digito
                 valorVar = productions[i + 7].rhs()[0]
-                print(self.get_indentation() + identificadorVar + ' := ' + valorVar + ';')
+                print(self._get_indentation() + identificadorVar + ' := ' + valorVar + ';')

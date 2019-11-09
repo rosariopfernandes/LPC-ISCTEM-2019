@@ -32,23 +32,23 @@ class IdentifierTable(object):
 
     _identifiers: list = []
 
-    def add_class(self, identifier: str, level: int):
+    def add_class(self, identifier: str, level: float):
         self._identifiers.append(Identifier(identifier=identifier, category=self.CATEGORY_CLASS, level=str(level)))
 
-    def add_variable(self, identifier: str, data_type: str, value: str, reference: str, level: int):
+    def add_variable(self, identifier: str, data_type: str, value: str, reference: str, level: float):
         self._identifiers.append(Identifier(identifier=identifier, category=self.CATEGORY_VARIABLE,
                                             data_type=data_type, memory_structure='Primitivo', value=value,
                                             evaluation_strategy='Por valor', reference=reference,
                                             level=str(level)))
 
     def add_method(self, identifier: str, data_type: str, parameter_count: int, parameter_sequence: str,
-                   reference: str, level: int):
+                   reference: str, level: float):
         self._identifiers.append(Identifier(identifier=identifier, category=self.CATEGORY_METHOD,
                                             data_type=data_type, memory_structure='Primitivo',
                                             params_nr=parameter_count, params_sequence=parameter_sequence,
                                             reference=reference, level=str(level)))
 
-    def add_parameter(self, identifier: str, data_type: str, value: str, reference: str, level: int):
+    def add_parameter(self, identifier: str, data_type: str, value: str, reference: str, level: float):
         self._identifiers.append(Identifier(identifier=identifier, category=self.CATEGORY_PARAMETER,
                                             data_type=data_type, memory_structure='Primitivo',
                                             value=value, reference=reference, level=str(level)))
