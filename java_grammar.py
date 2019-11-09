@@ -10,6 +10,7 @@ PRIMITIVE_TYPES = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short',
 # TODO: classificar multiplicacao(*) e divisão (/). Tem conflito com comentários
 SYMBOLS = ['+', '-', '=', '{', '}', '[', ']']
 
+# TODO: Fix bug with atribuição de variáveis (dentro do método) com identificador de uma letra só
 CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     """
     declaracao_classe -> "public" "class" identificador inicio_bloco corpo_classe fim_bloco
@@ -22,8 +23,8 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     declaracao_metodo -> tipo_dado identificador '(' ')' inicio_bloco corpo_metodo fim_bloco
 
     corpo_metodo -> 
-    corpo_metodo -> declaracao_variavel
     corpo_metodo -> atribuicao_variavel
+    corpo_metodo -> declaracao_variavel
     corpo_metodo -> chamada_metodo
     corpo_metodo -> corpo_metodo declaracao_variavel
     corpo_metodo -> corpo_metodo atribuicao_variavel
@@ -35,7 +36,7 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     atribuicao_variavel -> identificador simbolo_atribuicao valor simbolo_fim_instrucao
 
     tipo_dado -> tipo_dado_com_retorno | tipo_dado_sem_retorno
-    tipo_dado_com_retorno -> "int" | "char" | "byte" | "long" | "short" | "boolean"
+    tipo_dado_com_retorno -> "int" | "char" | "byte" | "long" | "short" | "boolean" | "float" | "double"
     tipo_dado_sem_retorno -> "void"
 
     chamada_metodo -> identificador '(' ')' simbolo_fim_instrucao
@@ -57,10 +58,12 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     letra -> 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
     letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
 
-    valor -> constante_inteira
+    valor -> constante_inteira | constante_booleana
 
     constante_inteira -> digito
     constante_inteira -> constante_inteira digito
     digito -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+    
+    constante_booleana -> "true" | "false"
     """
 )

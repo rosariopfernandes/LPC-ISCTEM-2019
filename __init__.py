@@ -17,13 +17,14 @@ outputs.print_lexema_table(tables.get_lexeme_table())
 
 outputs.print_symbol_table(tables.get_symbol_table())
 
-# Declaração de variáveis do tipo primitivo (locais ou globais)
-# instruções de atribuições simples
-# Funções sem retorno
-# Funções com retorno
-# Estruturas de controlo (if e while)
+# [ ] Declaração de variáveis do tipo primitivo local
+# [X] Declaração de variáveis do tipo primitivo global TODO: char, boolean, real
+# [ ] instruções de atribuições simples
+# [ ] Funções sem retorno
+# [ ] Funções com retorno
+# [ ] Estruturas de controlo (if e while)
 
 parse_result = lexical_analysis.execute(tables.get_lexeme_table(), CONTEXT_FREE_GRAMMAR)
 
 if parse_result:
-    PascalConverter().print_corresponding_code(parse_result)
+    PascalConverter().print_corresponding_code(parse_result, tables.get_symbol_table().get_identifiers())
