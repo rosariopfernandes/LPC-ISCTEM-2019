@@ -2,14 +2,14 @@ import file_operations
 import lexical_analysis
 import outputs
 from lexeme_table import LexemeTable
-from identificador import Identificador
+from identifier_table import IdentifierTable
 from pascal_converter import PascalConverter
 from java_grammar import RESERVED_WORDS, PRIMITIVE_TYPES, SYMBOLS, CONTEXT_FREE_GRAMMAR
 
 
 # Tabelas
 _lexeme_table = LexemeTable()
-identificadores = []
+_symbol_table = IdentifierTable()
 
 is_parameter = False
 parameter_count = 0
@@ -29,25 +29,11 @@ def get_indentation(line: str):
     return indentation
 
 
-def index_of_identificador(identificador: str):
-    for i in range(0, len(identificadores)):
-        if identificadores[i].identifier == identificador:
-            return i
-    return -1
-
-
-def is_identificador(word: str):
-    for identificador in identificadores:
-        if identificador.identifier == word:
-            return True
-    return False
-
-
 def verificar_valor():
     if _lexeme_table.get_last_token() == '=':
-        indice_identificador = index_of_identificador(_lexeme_table.get_second_last_token())
+        indice_identificador = _symbol_table.index_of(_lexeme_table.get_second_last_token())
         if indice_identificador != -1:
-            identificadores[indice_identificador].value = word
+            _symbol_table.update_value(indice_identificador, word)
 
 
 def classify(word, line_number):
@@ -61,33 +47,20 @@ def classify(word, line_number):
         else:
             if _lexeme_table.get_last_token() == 'class':
                 _lexeme_table.add_identifier(word, line_number)
-                identificadores.append(Identificador(identifier=word, category='Classe', level=str(nivel)))
+                _symbol_table.add_class(word, nivel)
             elif _lexeme_table.get_last_token() in PRIMITIVE_TYPES:
                 if is_parameter:
                     _lexeme_table.add_identifier(word, line_number)
-                    categoria = 'Parametro'
-                    estrutura_memoria = 'Primitivo'
-                    forma_passagem = 'valor'
-                    valor = '-'
                     parameter_count += 1
                     parameter_sequence += _lexeme_table.get_second_last_token() + ', '
+                    _symbol_table.add_parameter(word, _lexeme_table.get_second_last_token(), '-', '', nivel)
                 else:
                     _lexeme_table.add_identifier(word, line_number)
-                    categoria = 'Variavel'
-                    estrutura_memoria = 'Primitivo'
-                    forma_passagem = 'Valor'
-                    valor = '-'
-                identificadores.append(Identificador(identifier=word, category=categoria,
-                                                     data_type=_lexeme_table.get_second_last_token(),
-                                                     memory_structure=estrutura_memoria, value=valor,
-                                                     evaluation_strategy=forma_passagem, reference='',
-                                                     level=str(nivel)))
+                    _symbol_table.add_variable(word, _lexeme_table.get_second_last_token(), '-', '', nivel)
             elif _lexeme_table.get_last_token() == ',':
                 # Várias variáveis na mesma linha
                 variables_count += 1
-                identificadores.append(Identificador(identifier=word, category='Variavel', data_type=last_type,
-                                                     memory_structure='Primitivo', value='Valor',
-                                                     reference='', level=str(nivel)))
+                _symbol_table.add_variable(word, last_type, '-', '', nivel)
                 _lexeme_table.add_identifier(word, line_number)
             elif word.isdigit():
                 verificar_valor()
@@ -99,7 +72,7 @@ def classify(word, line_number):
                 # Verificar se esta constante está a ser atribuida à uma variável
                 verificar_valor()
                 _lexeme_table.add_char_constant(word, line_number)
-            elif is_identificador(word):
+            elif _symbol_table.contains(word):
                 _lexeme_table.add_identifier(word, line_number)
             else:
                 _lexeme_table.add_unknown(word, line_number)
@@ -154,10 +127,8 @@ for line in lines:
             word = ''
         elif char == '(' and _lexeme_table.get_last_token() in PRIMITIVE_TYPES:
             # Início de um método.
-            identificadores.append(Identificador(identifier=word, category='Método',
-                                                 data_type=_lexeme_table.get_last_token(),
-                                                 memory_structure='Primitivo', params_nr=parameter_count,
-                                                 params_sequence=parameter_sequence, reference='', level=str(nivel)))
+            _symbol_table.add_method(word, _lexeme_table.get_last_token(), parameter_count, parameter_sequence, '',
+                                     nivel)
             _lexeme_table.add_identifier(word, current_line_number)
             _lexeme_table.add_special_symbol(char, current_line_number)
             # Vamos procurar parametros
@@ -170,10 +141,7 @@ for line in lines:
         elif char == ')':
             if _lexeme_table.get_last_token() in PRIMITIVE_TYPES:
                 # Temos um parametro
-                identificadores.append(Identificador(identifier=word, category='Parametro',
-                                                     data_type=_lexeme_table.get_last_token(),
-                                                     memory_structure='Primitivo',
-                                                     value='valor', reference='', level=str(nivel)))
+                _symbol_table.add_parameter(word, _lexeme_table.get_last_token(), '', '', nivel)
                 parameter_count += 1
                 parameter_sequence += _lexeme_table.get_last_token()
                 _lexeme_table.add_identifier(word, current_line_number)
@@ -181,8 +149,8 @@ for line in lines:
             _lexeme_table.add_special_symbol(char, current_line_number)
             if parameter_sequence == '':
                 parameter_sequence = '-'
-            identificadores[-(parameter_count+1)].params_sequence = parameter_sequence
-            identificadores[-(parameter_count+1)].params_nr = parameter_count
+            _symbol_table.update_params_sequence(-(parameter_count+1), parameter_sequence)
+            _symbol_table.update_params_nr(-(parameter_count+1), parameter_count)
             parameter_sequence = ''
             parameter_count = 0
             is_parameter = False
@@ -196,7 +164,7 @@ for line in lines:
 
 outputs.print_lexema_table(_lexeme_table.get_lexemes())
 
-outputs.print_symbol_table(identificadores)
+outputs.print_symbol_table(_symbol_table.get_identifiers())
 
 # Declaração de variáveis do tipo primitivo (locais ou globais)
 # instruções de atribuições simples
