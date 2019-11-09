@@ -40,6 +40,7 @@ class PascalConverter(object):
                 print()
                 self.indentation = 0
             if item.lhs().symbol() == 'declaracao_variavel':
+                print('var')
                 if len(item.rhs()) == 5:
                     # Declaração com atribuição
                     tipo_dado = productions[i + 2].rhs()[0]
@@ -49,18 +50,15 @@ class PascalConverter(object):
                     # TODO: Support valor with more than 1 digito
                     valor = productions[i + 9].rhs()[0]
                     simbolo_fim_instrucao = ';'
+                    print(self._get_indentation() + identificador + ': ' + tipo_dado + ' ' + simbolo_atribuicao + ' ' +
+                          valor + simbolo_fim_instrucao)
                 else:
                     # Declaração simples
                     tipo_dado = productions[i + 2].rhs()[0]
                     # TODO: Support identificador with more than 1 letter
                     identificador = productions[i + 5].rhs()[0]
-                    simbolo_atribuicao = ''
-                    valor = ''
                     simbolo_fim_instrucao = ';'
-                # print(item.rhs())
-                print('var')
-                print(self._get_indentation() + identificador + ': ' + tipo_dado + ' ' + simbolo_atribuicao + ' ' +
-                      valor + simbolo_fim_instrucao)
+                    print(self._get_indentation() + identificador + ': ' + tipo_dado + simbolo_fim_instrucao)
             if item.lhs().symbol() == 'declaracao_metodo':
                 # Com retorno ou sem retorno?
                 if productions[i + 2].lhs().symbol() == 'tipo_dado_sem_retorno':
