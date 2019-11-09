@@ -21,3 +21,7 @@ def print_symbol_table(identificadores: list):
                                        identificador.params_sequence, identificador.evaluation_strategy,
                                        identificador.reference, identificador.level])
     print(table_identificadores)
+
+
+def print_file_not_found():
+    print('Ficheiro não encontrado')

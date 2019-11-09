@@ -1,7 +1,8 @@
+import file_operations
+import lexical_analysis
+import outputs
 from lexeme_table import LexemeTable
 from identificador import Identificador
-import outputs
-import lexical_analysis
 from pascal_converter import PascalConverter
 from java_grammar import RESERVED_WORDS, PRIMITIVE_TYPES, SYMBOLS, CONTEXT_FREE_GRAMMAR
 
@@ -104,7 +105,11 @@ def classify(word, line_number):
                 _lexeme_table.add_unknown(word, line_number)
 
 
-lines = [line.rstrip('\n') for line in open('Ex.java')]
+lines = file_operations.read_lines_from_file('Ex.java')
+
+if len(lines) == 0:
+    exit()
+
 current_line_number = 1
 
 is_comentario = False
