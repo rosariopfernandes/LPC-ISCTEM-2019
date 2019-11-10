@@ -109,12 +109,24 @@ class JavaParser(object):
                         lhs = productions[j].rhs()[0]
                         variable_name += lhs
                         j += 2
-                    j += 2
+                    j += 1
                     variable_value = ''
-                    while productions[j].lhs().symbol() == 'digito':
-                        lhs = productions[j].rhs()[0]
-                        variable_value += lhs
-                        j += 2
+                    if productions[j].lhs().symbol() == 'constante_inteira':
+                        variable_value = ''
+                        j += 1
+                        while productions[j].lhs().symbol() == 'digito':
+                            lhs = productions[j].rhs()[0]
+                            variable_value += lhs
+                            j += 2
+                    if productions[j].lhs().symbol() == 'constante_booleana':
+                        variable_value = productions[j].rhs()[0]
+                    if productions[j].lhs().symbol() == 'constante_real':
+                        j += 1
+                        while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
+                            if productions[j].lhs().symbol() != 'constante_inteira':
+                                lhs = productions[j].rhs()[0]
+                                variable_value += lhs
+                            j += 1
                 if _current_procedure_declaration is not None:
                     _current_procedure_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
                 if _current_function_declaration is not None:

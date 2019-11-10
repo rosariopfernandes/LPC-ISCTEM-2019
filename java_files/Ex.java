@@ -1,9 +1,9 @@
 public class Ex {
 
-    byte ba;
+    boolean ba;
 
     void atribuirOito() {
-        ba = 8;
+        ba = 052l;
     }
 
     /*int c() {

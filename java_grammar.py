@@ -57,12 +57,16 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     letra -> 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
     letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '_'
 
-    valor -> constante_inteira | constante_booleana
+    valor -> constante_inteira | constante_booleana | constante_real
 
     constante_inteira -> digito
     constante_inteira -> digito constante_inteira
     digito -> '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
     
     constante_booleana -> "true" | "false"
+    
+    constante_real -> constante_inteira separador constante_inteira
+    constante_real -> constante_inteira separador constante_inteira 'f'
+    separador -> '.'
     """
 )
