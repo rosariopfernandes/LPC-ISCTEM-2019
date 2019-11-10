@@ -3,7 +3,7 @@ public class Ex {
     boolean ba;
 
     void atribuirOito() {
-        ba = 052l;
+        ba = '&';
     }
 
     /*int c() {

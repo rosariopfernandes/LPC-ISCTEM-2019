@@ -57,7 +57,7 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     letra -> 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
     letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '_'
 
-    valor -> constante_inteira | constante_booleana | constante_real
+    valor -> constante_inteira | constante_booleana | constante_real | constante_caracter
 
     constante_inteira -> digito
     constante_inteira -> digito constante_inteira
@@ -68,5 +68,8 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     constante_real -> constante_inteira separador constante_inteira
     constante_real -> constante_inteira separador constante_inteira 'f'
     separador -> '.'
+    
+    constante_caracter -> "'" caracter "'"
+    caracter -> letra | digito | '*' | '|' | '/' | '!' | '#' | '$' | '%' | '&'
     """
 )

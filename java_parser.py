@@ -127,6 +127,11 @@ class JavaParser(object):
                                 lhs = productions[j].rhs()[0]
                                 variable_value += lhs
                             j += 1
+                    if productions[j].lhs().symbol() == 'constante_caracter':
+                        if productions[j+1].lhs().symbol() == 'caracter':
+                            variable_value = "'" + productions[j + 1].rhs()[0] + "'"
+                        else:
+                            variable_value = "'" + productions[j+1].rhs()[0].symbol() + "'"
                 if _current_procedure_declaration is not None:
                     _current_procedure_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
                 if _current_function_declaration is not None:
