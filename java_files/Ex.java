@@ -1,9 +1,11 @@
 public class Ex {
 
-    boolean ba;
+    // boolean ba;
 
-    void atribuirOito() {
-        ba = '&';
+    int atrOito() {
+        // ba = '&';
+        boolean laptop = '6';
+        laptop = true;
     }
 
     /*int c() {

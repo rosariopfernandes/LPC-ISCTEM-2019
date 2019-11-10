@@ -21,15 +21,20 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
     # Imprime variáveis globais
     print('var')
     for variavel in _java_class.variable_declarations:
-        variable_output = '   ' + variavel.variable_name + ': ' + variavel.data_type
+        declaration_output = '   ' + variavel.variable_name + ': ' + variavel.data_type
         if variavel.value is not None:
-            variable_output += ' := ' + variavel.value
-        print(variable_output + ';')
+            declaration_output += ' := ' + variavel.value
+        print(declaration_output + ';')
     print()
 
     # Imprime Functions
     for _function in _java_class.function_declarations:
         print('function ' + _function.function_name + '(): ' + _function.data_type + ';')
+        for declaration in _function.local_declarations:
+            declaration_output = '   ' + declaration.variable_name + ': ' + declaration.data_type
+            if declaration.value is not None:
+                declaration_output += ' := ' + declaration.value
+            print(declaration_output + ';')
         print('begin')
         for assignment in _function.assignments:
             print('   ' + assignment.variable_name + ' := ' + assignment.value + ';')
@@ -39,6 +44,12 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
     # Imprime Procedures
     for procedure in _java_class.procedure_declarations:
         print('procedure ' + procedure.procedure_name + '();')
+        print('var')
+        for declaration in procedure.local_declarations:
+            declaration_output = '   ' + declaration.variable_name + ': ' + declaration.data_type
+            if declaration.value is not None:
+                declaration_output += ' := ' + declaration.value
+            print(declaration_output + ';')
         print('begin')
         for assignment in procedure.assignments:
             print('   ' + assignment.variable_name + ' := ' + assignment.value + ';')

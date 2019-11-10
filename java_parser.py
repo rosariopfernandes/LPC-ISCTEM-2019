@@ -1,4 +1,5 @@
 from nltk.grammar import Production
+from nltk.grammar import Nonterminal
 from identifier_table import IdentifierTable
 from models.class_declaration import ClassDeclaration
 from models.procedure_declaration import ProcedureDeclaration
@@ -22,7 +23,6 @@ class JavaParser(object):
 
     def get_class_declaration(self, parse_result, symbols: list, mapping: dict):
         _symbol_table_index = 0
-        _local_variables = []
         _is_inside_method = False
         _java_class = ClassDeclaration()
         _current_procedure_declaration: ProcedureDeclaration = None
@@ -58,7 +58,23 @@ class JavaParser(object):
             if item.lhs().symbol() == 'declaracao_variavel':
                 var_name = symbols[_symbol_table_index].identifier
                 var_data_type = mapping[symbols[_symbol_table_index].data_type]
-                var_value = symbols[_symbol_table_index].value
+                var_value = ''
+                j = i + 1
+                while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
+                    if productions[j].lhs().symbol() == 'digito' or productions[j].lhs().symbol() == 'separador':
+                        lhs = productions[j].rhs()[0]
+                        var_value += lhs
+                    if productions[j].lhs().symbol() == 'constante_booleana':
+                        var_value = productions[j].rhs()[0]
+                        break
+                    if productions[j].lhs().symbol() == 'constante_caracter':
+                        if productions[j+1].lhs().symbol() == 'caracter':
+                            if type(productions[j+1].rhs()[0]) == Nonterminal:
+                                var_value = "'" + productions[j + 2].rhs()[0] + "'"
+                            else:
+                                var_value = "'" + productions[j + 1].rhs()[0] + "'"
+                            break
+                    j += 1
                 if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_VARIABLE:
                     _symbol_table_index += 1
                 else:
@@ -71,7 +87,10 @@ class JavaParser(object):
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
                 if _is_inside_method:
-                    _local_variables.append(var_declaration)
+                    if _current_function_declaration is not None:
+                        _current_function_declaration.local_declarations.append(var_declaration)
+                    if _current_procedure_declaration is not None:
+                        _current_procedure_declaration.local_declarations.append(var_declaration)
                 else:
                     _java_class.variable_declarations.append(var_declaration)
             if item.lhs().symbol() == 'declaracao_metodo':
