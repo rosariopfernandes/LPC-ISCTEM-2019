@@ -39,11 +39,16 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_atribuicao valor simbolo_fim_instrucao
 
     atribuicao_variavel -> identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    atribuicao_variavel -> identificador simbolo_atribuicao chamada_metodo simbolo_fim_instrucao
 
     tipo_dado_com_retorno -> "int" | "char" | "byte" | "long" | "short" | "boolean" | "float" | "double"
     tipo_dado_sem_retorno -> "void"
 
-    chamada_metodo -> identificador '(' ')' simbolo_fim_instrucao
+    chamada_metodo -> identificador '(' lista_argumentos ')' simbolo_fim_instrucao
+    
+    lista_argumentos ->
+    lista_argumentos -> identificador
+    lista_argumentos -> identificador simbolo_separador lista_argumentos
 
     inicio_bloco -> '{'
     simbolo_separador -> ','

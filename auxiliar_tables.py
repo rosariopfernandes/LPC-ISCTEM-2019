@@ -12,6 +12,7 @@ class AuxiliarTables(object):
     _current_line_number: int
     _is_comment: bool
     _is_parameter: bool
+    _is_method_call_param: bool
     _last_data_type: str
     _level: float
     _parameter_count: int
@@ -25,6 +26,7 @@ class AuxiliarTables(object):
         self._current_line_number = 1
         self._is_comment = False
         self._is_parameter = False
+        self._is_method_call_param = False
         self._last_data_type = ''
         self._level = 0.0
         self._parameter_count = 0
@@ -89,15 +91,18 @@ class AuxiliarTables(object):
                     self._symbol_table.add_variable(word, self._last_data_type, '-', '', self._level)
                     self._lexeme_table.add_identifier(word, line_number)
                 elif word.isdigit():
+                    # constante do tipo inteiro
                     self._check_value()
                     self._lexeme_table.add_numeric_constant(word, line_number)
                 elif word[-1:] == 'l':
+                    # constante do tipo long
                     if word[:-1].isdigit():
                         self._check_value()
                         self._lexeme_table.add_numeric_constant(word[:-1], line_number)
                     else:
                         self._lexeme_table.add_unknown(word, line_number)
                 elif word == 'true' or word == 'false':
+                    # constante do tipo booleano
                     self._check_value()
                     self._lexeme_table.add_boolean_constant(word, line_number)
                 elif word.startswith('\'') and word.endswith('\'') and len(word) == 3:
@@ -105,7 +110,8 @@ class AuxiliarTables(object):
                     self._check_value()
                     self._lexeme_table.add_char_constant(word, line_number)
                 elif self._symbol_table.contains(word):
-                    self._lexeme_table.add_identifier(word, line_number)
+                    if not self._is_method_call_param:
+                        self._lexeme_table.add_identifier(word, line_number)
                 elif self._is_real_number(word):
                     self._lexeme_table.add_numeric_constant(word, line_number)
                 else:
@@ -182,12 +188,24 @@ class AuxiliarTables(object):
                     self._parameter_sequence = ''
                     self._parameter_count = 0
                     self._is_parameter = False
+                    self._is_method_call_param = False
                     self._word = ''
                 elif char.isdigit():
                     char = str(char)
                     self._word += char
                 else:
-                    self._word += char
+                    if char == '(':
+                        if self._symbol_table.contains(self._word):
+                            # Provavelmente está chamar um método
+                            self._lexeme_table.add_identifier(self._word, self._current_line_number)
+                            self._lexeme_table.add_special_symbol('(', self._current_line_number)
+                            self._word = ''
+                            self._is_method_call_param = True
+                    else:
+                        self._word += char
+                    # Parametros passados ao método que está ser chamado
+                    if self._symbol_table.contains(self._word) and self._is_method_call_param:
+                        self._lexeme_table.add_identifier(self._word, self._current_line_number)
             self._current_line_number += 1
 
     def get_lexeme_table(self):
