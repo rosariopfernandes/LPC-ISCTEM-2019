@@ -100,13 +100,28 @@ class JavaParser(object):
                     _current_function_declaration = FunctionDeclaration(mapping[productions[i+2].rhs()[0]],
                                                                         identificador_metodo, [])
             if item.lhs().symbol() == 'atribuicao_variavel':
-                # TODO: Support identificador com mais de uma letra
-                identificadorVar = productions[i + 3].rhs()[0]
-                # TODO: Support valor com mais de um digito
-                valorVar = productions[i + 7].rhs()[0]
+                if len(productions[i+1].rhs()) == 1:
+                    # identificador de 1 letra
+                    variable_name = productions[i + 3].rhs()[0]
+                    variable_value = productions[i + 7].rhs()[0]
+                else:
+                    # identificador com mais de 1 letra
+                    # vamos formar o nome da variavel
+                    j = i+3
+                    variable_name = ''
+                    while productions[j].lhs().symbol() == 'letra':
+                        lhs = productions[j].rhs()[0]
+                        variable_name += lhs
+                        j += 2
+                    j += 2
+                    variable_value = ''
+                    while productions[j].lhs().symbol() == 'digito':
+                        lhs = productions[j].rhs()[0]
+                        variable_value += lhs
+                        j += 2
                 if _current_procedure_declaration is not None:
-                    _current_procedure_declaration.assignments.append(VariableAssignment(identificadorVar, valorVar))
+                    _current_procedure_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
                 if _current_function_declaration is not None:
-                    _current_function_declaration.assignments.append(VariableAssignment(identificadorVar, valorVar))
+                    _current_function_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
 
         return _java_class

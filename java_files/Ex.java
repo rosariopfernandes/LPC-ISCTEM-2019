@@ -1,13 +1,10 @@
-public class Exemplo {
+public class Ex {
 
-    int bigNumber = 6;
-    int variavel;
+    int ba;
 
-    void calc() {
-        b = 7;
+    void ca() {
+        ba = 8;
     }
-
-    boolean prova = 1;
 
     /*int c() {
         short a = 5;
