@@ -2,6 +2,7 @@ from nltk.grammar import Production
 from identifier_table import IdentifierTable
 from models.class_declaration import ClassDeclaration
 from models.procedure_declaration import ProcedureDeclaration
+from models.function_declaration import FunctionDeclaration
 from models.variable_assignment import VariableAssignment
 from models.variable_declaration import VariableDeclaration
 
@@ -24,13 +25,14 @@ class JavaParser(object):
         _local_variables = []
         _is_inside_method = False
         _java_class = ClassDeclaration()
-        _current_procedure_declaration: ProcedureDeclaration
+        _current_procedure_declaration: ProcedureDeclaration = None
+        _current_function_declaration: FunctionDeclaration = None
 
         tree = list(parse_result)[0]
         productions = list(tree.productions())
         for i in range(len(productions)):
             item: Production = productions[i]
-            # print(i, ': ', item)
+            print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
                 if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_CLASS:
                     _java_class.class_name = symbols[_symbol_table_index].identifier
@@ -52,6 +54,9 @@ class JavaParser(object):
                     if _current_procedure_declaration is not None:
                         _java_class.procedure_declarations.append(_current_procedure_declaration)
                         _current_procedure_declaration = None
+                    if _current_function_declaration is not None:
+                        _java_class.function_declarations.append(_current_function_declaration)
+                        _current_function_declaration = None
                     _is_inside_method = False
                 self.indentation = 0
             if item.lhs().symbol() == 'declaracao_variavel':
@@ -85,8 +90,15 @@ class JavaParser(object):
                         print('Esperava declaração de método')
                     # TODO: Support method arguments
                     _current_procedure_declaration = ProcedureDeclaration(identificador_metodo, [])
-                # else:
-                #     _output_lines.append('function')
+                else:
+                    identificador_metodo = symbols[_symbol_table_index].identifier
+                    if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
+                        _symbol_table_index += 1
+                    else:
+                        # TODO: Throw error
+                        print('Esperava declaração de método')
+                    _current_function_declaration = FunctionDeclaration(mapping[productions[i+2].rhs()[0]],
+                                                                        identificador_metodo, [])
             if item.lhs().symbol() == 'atribuicao_variavel':
                 # TODO: Support identificador com mais de uma letra
                 identificadorVar = productions[i + 3].rhs()[0]
@@ -94,5 +106,7 @@ class JavaParser(object):
                 valorVar = productions[i + 7].rhs()[0]
                 if _current_procedure_declaration is not None:
                     _current_procedure_declaration.assignments.append(VariableAssignment(identificadorVar, valorVar))
+                if _current_function_declaration is not None:
+                    _current_function_declaration.assignments.append(VariableAssignment(identificadorVar, valorVar))
 
         return _java_class

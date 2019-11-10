@@ -27,7 +27,14 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
         print(variable_output + ';')
     print()
 
-    # Imprime Functions TODO
+    # Imprime Functions
+    for _function in _java_class.function_declarations:
+        print('function ' + _function.function_name + '(): ' + _function.data_type + ';')
+        print('begin')
+        for assignment in _function.assignments:
+            print('   ' + assignment.variable_name + ' := ' + assignment.value + ';')
+        print('end;')
+        print()
 
     # Imprime Procedures
     for procedure in _java_class.procedure_declarations:

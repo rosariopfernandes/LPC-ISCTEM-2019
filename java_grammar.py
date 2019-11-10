@@ -26,9 +26,9 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     corpo_metodo -> atribuicao_variavel
     corpo_metodo -> declaracao_variavel
     corpo_metodo -> chamada_metodo
-    corpo_metodo -> corpo_metodo declaracao_variavel
-    corpo_metodo -> corpo_metodo atribuicao_variavel
-    corpo_metodo -> corpo_metodo chamada_metodo
+    corpo_metodo -> declaracao_variavel corpo_metodo
+    corpo_metodo -> atribuicao_variavel corpo_metodo 
+    corpo_metodo -> chamada_metodo corpo_metodo 
 
     declaracao_variavel -> tipo_dado identificador simbolo_fim_instrucao
     declaracao_variavel -> tipo_dado identificador simbolo_atribuicao valor simbolo_fim_instrucao
@@ -49,14 +49,14 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
 
     identificador -> inicio_identificador
     identificador -> inicio_identificador corpo_identificador
-    inicio_identificador -> '_' | letra
-    corpo_identificador -> '_' | letra | constante_inteira
-    corpo_identificador -> corpo_identificador palavra
+    inicio_identificador -> letra
+    corpo_identificador -> letra | constante_inteira
+    corpo_identificador -> letra corpo_identificador | constante_inteira corpo_identificador
 
     palavra -> letra
     palavra -> palavra letra
     letra -> 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
-    letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+    letra -> 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '_'
 
     valor -> constante_inteira | constante_booleana
 
