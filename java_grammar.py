@@ -4,13 +4,12 @@ from nltk import CFG
 RESERVED_WORDS = ['public', 'class', 'for', 'while', 'if', 'static', 'private', 'return']
 
 # Tipos primitivos
-PRIMITIVE_TYPES = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short', 'long']
+PRIMITIVE_TYPES = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short', 'long', 'byte']
 
 # Símbolos Especiais
 # TODO: classificar multiplicacao(*) e divisão (/). Tem conflito com comentários
 SYMBOLS = ['+', '-', '=', '{', '}', '[', ']']
 
-# TODO: Fix bug with atribuição de variáveis (dentro do método) com identificador de uma letra só
 CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     """
     declaracao_classe -> "public" "class" identificador inicio_bloco corpo_classe fim_bloco

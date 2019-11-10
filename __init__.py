@@ -19,9 +19,9 @@ outputs.print_lexema_table(tables.get_lexeme_table())
 outputs.print_symbol_table(tables.get_symbol_table())
 
 # [ ] Declaração de variáveis do tipo primitivo local
-# [X] Declaração de variáveis do tipo primitivo global TODO: char, boolean, real
-# [ ] instruções de atribuições simples
-# [ ] Funções sem retorno
+# [X] Declaração de variáveis do tipo primitivo global
+# [x] instruções de atribuições simples
+# [ ] Funções sem retorno # TODO: parametros
 # [ ] Funções com retorno
 # [ ] Estruturas de controlo (if e while)
 

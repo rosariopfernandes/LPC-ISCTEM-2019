@@ -1,8 +1,8 @@
 public class Ex {
 
-    int ba;
+    byte ba;
 
-    void ca() {
+    void atribuirOito() {
         ba = 8;
     }
 

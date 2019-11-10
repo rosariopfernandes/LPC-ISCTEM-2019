@@ -45,11 +45,7 @@ class JavaParser(object):
                 # TODO: Add 3 instead of assigning 3
                 self.indentation = 3
             if item.lhs().symbol() == 'fim_bloco':
-                # TODO: Check if its the last one
-                if i == len(productions) - 1:
-                    print('end.')
-                    # _output_lines.append('end.')
-                else:
+                if i != len(productions) - 1:
                     # _output_lines.append('end;')
                     if _current_procedure_declaration is not None:
                         _java_class.procedure_declarations.append(_current_procedure_declaration)
