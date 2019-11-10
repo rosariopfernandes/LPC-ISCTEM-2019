@@ -29,6 +29,7 @@ class JavaParser(object):
         _current_function_declaration: FunctionDeclaration = None
 
         tree = list(parse_result)[0]
+        # tree.pretty_print()
         productions = list(tree.productions())
         for i in range(len(productions)):
             item: Production = productions[i]
@@ -157,8 +158,8 @@ class JavaParser(object):
                     _current_function_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
             if item.lhs().symbol() == 'lista_parametros':
                 parameter_data_type = productions[i + 2].rhs()[0]
-                # TODO: get actual parameter names
-                parameter_name = 'test'
+                parameter_name = symbols[_symbol_table_index].identifier
+                _symbol_table_index += 1
                 if _current_procedure_declaration is not None:
                     _current_procedure_declaration.arguments.append(
                         VariableDeclaration(mapping[parameter_data_type], parameter_name))

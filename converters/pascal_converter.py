@@ -72,5 +72,5 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
 
     # Imprime o método Principal
     print('begin')
-    print("   writeln('Hello World')")
+    print("   writeln('Hello World');")
     print('end.')

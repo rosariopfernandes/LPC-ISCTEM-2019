@@ -21,7 +21,7 @@ outputs.print_symbol_table(tables.get_symbol_table())
 # [x] Declaração de variáveis do tipo primitivo local
 # [X] Declaração de variáveis do tipo primitivo global
 # [x] instruções de atribuições simples
-# [ ] Funções sem retorno # TODO: parameter names
+# [x] Funções sem retorno
 # [ ] Funções com retorno
 # [ ] Estruturas de controlo (if e while)
 
