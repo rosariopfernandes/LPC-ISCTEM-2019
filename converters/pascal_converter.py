@@ -29,7 +29,12 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
 
     # Imprime Functions
     for _function in _java_class.function_declarations:
-        print('function ' + _function.function_name + '(): ' + _function.data_type + ';')
+        procedure_arguments = ''
+        for argument in _function.arguments:
+            procedure_arguments += argument.variable_name + ': ' + argument.data_type + ', '
+        if len(procedure_arguments) > 0:
+            procedure_arguments = procedure_arguments[:-2]
+        print('function ' + _function.function_name + '(' + procedure_arguments + '): ' + _function.data_type + ';')
         for declaration in _function.local_declarations:
             declaration_output = '   ' + declaration.variable_name + ': ' + declaration.data_type
             if declaration.value is not None:
@@ -43,7 +48,12 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
 
     # Imprime Procedures
     for procedure in _java_class.procedure_declarations:
-        print('procedure ' + procedure.procedure_name + '();')
+        procedure_arguments = ''
+        for argument in procedure.arguments:
+            procedure_arguments += argument.variable_name + ': ' + argument.data_type + ', '
+        if len(procedure_arguments) > 0:
+            procedure_arguments = procedure_arguments[:-2]
+        print('procedure ' + procedure.procedure_name + '(' + procedure_arguments + ');')
         print('var')
         for declaration in procedure.local_declarations:
             declaration_output = '   ' + declaration.variable_name + ': ' + declaration.data_type

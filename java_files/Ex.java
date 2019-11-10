@@ -2,7 +2,7 @@ public class Ex {
 
     // boolean ba;
 
-    int atrOito() {
+    void atrOito(char a, int b) {
         // ba = '&';
         boolean laptop = '6';
         laptop = true;

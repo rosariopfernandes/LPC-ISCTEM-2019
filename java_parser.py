@@ -68,8 +68,8 @@ class JavaParser(object):
                         var_value = productions[j].rhs()[0]
                         break
                     if productions[j].lhs().symbol() == 'constante_caracter':
-                        if productions[j+1].lhs().symbol() == 'caracter':
-                            if type(productions[j+1].rhs()[0]) == Nonterminal:
+                        if productions[j + 1].lhs().symbol() == 'caracter':
+                            if type(productions[j + 1].rhs()[0]) == Nonterminal:
                                 var_value = "'" + productions[j + 2].rhs()[0] + "'"
                             else:
                                 var_value = "'" + productions[j + 1].rhs()[0] + "'"
@@ -112,17 +112,17 @@ class JavaParser(object):
                     else:
                         # TODO: Throw error
                         print('Esperava declaração de método')
-                    _current_function_declaration = FunctionDeclaration(mapping[productions[i+2].rhs()[0]],
+                    _current_function_declaration = FunctionDeclaration(mapping[productions[i + 2].rhs()[0]],
                                                                         identificador_metodo, [])
             if item.lhs().symbol() == 'atribuicao_variavel':
-                if len(productions[i+1].rhs()) == 1:
+                if len(productions[i + 1].rhs()) == 1:
                     # identificador de 1 letra
                     variable_name = productions[i + 3].rhs()[0]
                     variable_value = productions[i + 7].rhs()[0]
                 else:
                     # identificador com mais de 1 letra
                     # vamos formar o nome da variavel
-                    j = i+3
+                    j = i + 3
                     variable_name = ''
                     while productions[j].lhs().symbol() == 'letra':
                         lhs = productions[j].rhs()[0]
@@ -147,13 +147,22 @@ class JavaParser(object):
                                 variable_value += lhs
                             j += 1
                     if productions[j].lhs().symbol() == 'constante_caracter':
-                        if productions[j+1].lhs().symbol() == 'caracter':
+                        if productions[j + 1].lhs().symbol() == 'caracter':
                             variable_value = "'" + productions[j + 1].rhs()[0] + "'"
                         else:
-                            variable_value = "'" + productions[j+1].rhs()[0].symbol() + "'"
+                            variable_value = "'" + productions[j + 1].rhs()[0].symbol() + "'"
                 if _current_procedure_declaration is not None:
                     _current_procedure_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
                 if _current_function_declaration is not None:
                     _current_function_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
-
+            if item.lhs().symbol() == 'lista_parametros':
+                parameter_data_type = productions[i + 2].rhs()[0]
+                # TODO: get actual parameter names
+                parameter_name = 'test'
+                if _current_procedure_declaration is not None:
+                    _current_procedure_declaration.arguments.append(
+                        VariableDeclaration(mapping[parameter_data_type], parameter_name))
+                if _current_function_declaration is not None:
+                    _current_function_declaration.arguments.append(
+                        VariableDeclaration(mapping[parameter_data_type], parameter_name))
         return _java_class

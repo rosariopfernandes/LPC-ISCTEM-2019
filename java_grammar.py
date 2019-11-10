@@ -19,7 +19,11 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     corpo_classe -> declaracao_variavel corpo_classe
     corpo_classe -> declaracao_metodo corpo_classe
 
-    declaracao_metodo -> tipo_dado identificador '(' ')' inicio_bloco corpo_metodo fim_bloco
+    declaracao_metodo -> tipo_dado identificador '(' lista_parametros ')' inicio_bloco corpo_metodo fim_bloco
+    
+    lista_parametros ->
+    lista_parametros -> tipo_dado identificador
+    lista_parametros -> tipo_dado identificador simbolo_separador lista_parametros
 
     corpo_metodo -> 
     corpo_metodo -> atribuicao_variavel
