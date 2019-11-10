@@ -19,7 +19,8 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
     print()
 
     # Imprime variáveis globais
-    print('var')
+    if len(_java_class.variable_declarations) > 0:
+        print('var')
     for variavel in _java_class.variable_declarations:
         declaration_output = '   ' + variavel.variable_name + ': ' + variavel.data_type
         if variavel.value is not None:
@@ -35,6 +36,8 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
         if len(procedure_arguments) > 0:
             procedure_arguments = procedure_arguments[:-2]
         print('function ' + _function.function_name + '(' + procedure_arguments + '): ' + _function.data_type + ';')
+        if len(_function.local_declarations) > 0:
+            print('var')
         for declaration in _function.local_declarations:
             declaration_output = '   ' + declaration.variable_name + ': ' + declaration.data_type
             if declaration.value is not None:
@@ -54,7 +57,8 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
         if len(procedure_arguments) > 0:
             procedure_arguments = procedure_arguments[:-2]
         print('procedure ' + procedure.procedure_name + '(' + procedure_arguments + ');')
-        print('var')
+        if len(procedure.local_declarations) > 0:
+            print('var')
         for declaration in procedure.local_declarations:
             declaration_output = '   ' + declaration.variable_name + ': ' + declaration.data_type
             if declaration.value is not None:

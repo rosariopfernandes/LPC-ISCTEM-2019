@@ -1,10 +1,9 @@
 public class Ex {
 
-    // boolean ba;
+    boolean laptop;
 
     void atrOito(char a, int b) {
         // ba = '&';
-        boolean laptop = '6';
         laptop = true;
     }
 
