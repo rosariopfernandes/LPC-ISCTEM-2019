@@ -22,7 +22,7 @@ outputs.print_symbol_table(tables.get_symbol_table())
 # [X] Declaração de variáveis do tipo primitivo global
 # [x] instruções de atribuições simples
 # [x] Funções sem retorno
-# [ ] Funções com retorno
+# [x] Funções com retorno
 # [ ] Estruturas de controlo (if e while)
 
 parse_result = lexical_analysis.execute(tables.get_lexeme_table(), CONTEXT_FREE_GRAMMAR)

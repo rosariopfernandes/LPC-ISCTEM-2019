@@ -1,10 +1,16 @@
 public class Ex {
 
-    boolean laptop;
+    boolean laptop = false;
+    int b = 200;
 
-    void atrOito(char a, int b) {
+    int atrOito(char a, int b) {
         // ba = '&';
         laptop = true;
+        return 5;
+    }
+
+    void semRetorno() {
+        b = 300;
     }
 
     /*int c() {

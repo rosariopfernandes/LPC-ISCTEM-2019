@@ -46,6 +46,7 @@ def print_pascal_equivalent(_java_class: ClassDeclaration):
         print('begin')
         for assignment in _function.assignments:
             print('   ' + assignment.variable_name + ' := ' + assignment.value + ';')
+        print('   ' + _function.function_name + ' := ' + _function.return_value + ';')
         print('end;')
         print()
 

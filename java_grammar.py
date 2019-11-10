@@ -19,11 +19,13 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     corpo_classe -> declaracao_variavel corpo_classe
     corpo_classe -> declaracao_metodo corpo_classe
 
-    declaracao_metodo -> tipo_dado identificador '(' lista_parametros ')' inicio_bloco corpo_metodo fim_bloco
+    declaracao_metodo -> tipo_dado_sem_retorno identificador '(' lista_parametros ')' inicio_bloco corpo_metodo fim_bloco
+    declaracao_metodo -> tipo_dado_com_retorno identificador '(' lista_parametros ')' inicio_bloco corpo_metodo "return" retorno simbolo_fim_instrucao fim_bloco
+    retorno -> identificador | valor
     
     lista_parametros ->
-    lista_parametros -> tipo_dado identificador
-    lista_parametros -> tipo_dado identificador simbolo_separador lista_parametros
+    lista_parametros -> tipo_dado_com_retorno identificador
+    lista_parametros -> tipo_dado_com_retorno identificador simbolo_separador lista_parametros
 
     corpo_metodo -> 
     corpo_metodo -> atribuicao_variavel
@@ -31,14 +33,13 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     corpo_metodo -> chamada_metodo
     corpo_metodo -> declaracao_variavel corpo_metodo
     corpo_metodo -> atribuicao_variavel corpo_metodo 
-    corpo_metodo -> chamada_metodo corpo_metodo 
+    corpo_metodo -> chamada_metodo corpo_metodo
 
-    declaracao_variavel -> tipo_dado identificador simbolo_fim_instrucao
-    declaracao_variavel -> tipo_dado identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_fim_instrucao
+    declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_atribuicao valor simbolo_fim_instrucao
 
     atribuicao_variavel -> identificador simbolo_atribuicao valor simbolo_fim_instrucao
 
-    tipo_dado -> tipo_dado_com_retorno | tipo_dado_sem_retorno
     tipo_dado_com_retorno -> "int" | "char" | "byte" | "long" | "short" | "boolean" | "float" | "double"
     tipo_dado_sem_retorno -> "void"
 

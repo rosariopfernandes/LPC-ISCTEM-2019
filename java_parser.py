@@ -61,6 +61,7 @@ class JavaParser(object):
                 var_data_type = mapping[symbols[_symbol_table_index].data_type]
                 var_value = ''
                 j = i + 1
+                # encontrar o valor da variavel
                 while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
                     if productions[j].lhs().symbol() == 'digito' or productions[j].lhs().symbol() == 'separador':
                         lhs = productions[j].rhs()[0]
@@ -97,7 +98,7 @@ class JavaParser(object):
             if item.lhs().symbol() == 'declaracao_metodo':
                 _is_inside_method = True
                 # Com retorno ou sem retorno?
-                if productions[i + 2].lhs().symbol() == 'tipo_dado_sem_retorno':
+                if productions[i + 1].lhs().symbol() == 'tipo_dado_sem_retorno':
                     identificador_metodo = symbols[_symbol_table_index].identifier
                     if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
                         _symbol_table_index += 1
@@ -113,13 +114,18 @@ class JavaParser(object):
                     else:
                         # TODO: Throw error
                         print('Esperava declaração de método')
-                    _current_function_declaration = FunctionDeclaration(mapping[productions[i + 2].rhs()[0]],
-                                                                        identificador_metodo, [])
+                    _current_function_declaration = FunctionDeclaration(mapping[productions[i + 1].rhs()[0]],
+                                                                        identificador_metodo)
+            if item.lhs().symbol() == 'retorno':
+                if _current_function_declaration is not None:
+                    # TODO: Support return of values
+                    # TODO: Support return of identifiers with more than 1 letter
+                    _current_function_declaration.return_value = productions[i+3].rhs()[0]
             if item.lhs().symbol() == 'atribuicao_variavel':
                 if len(productions[i + 1].rhs()) == 1:
                     # identificador de 1 letra
                     variable_name = productions[i + 3].rhs()[0]
-                    variable_value = productions[i + 7].rhs()[0]
+                    j = i + 6
                 else:
                     # identificador com mais de 1 letra
                     # vamos formar o nome da variavel
@@ -130,40 +136,44 @@ class JavaParser(object):
                         variable_name += lhs
                         j += 2
                     j += 1
+                variable_value = ''
+                if productions[j].lhs().symbol() == 'constante_inteira':
                     variable_value = ''
-                    if productions[j].lhs().symbol() == 'constante_inteira':
-                        variable_value = ''
-                        j += 1
-                        while productions[j].lhs().symbol() == 'digito':
+                    j += 1
+                    while productions[j].lhs().symbol() == 'digito':
+                        lhs = productions[j].rhs()[0]
+                        variable_value += lhs
+                        j += 2
+                if productions[j].lhs().symbol() == 'constante_booleana':
+                    variable_value = productions[j].rhs()[0]
+                if productions[j].lhs().symbol() == 'constante_real':
+                    j += 1
+                    while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
+                        if productions[j].lhs().symbol() != 'constante_inteira':
                             lhs = productions[j].rhs()[0]
                             variable_value += lhs
-                            j += 2
-                    if productions[j].lhs().symbol() == 'constante_booleana':
-                        variable_value = productions[j].rhs()[0]
-                    if productions[j].lhs().symbol() == 'constante_real':
                         j += 1
-                        while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
-                            if productions[j].lhs().symbol() != 'constante_inteira':
-                                lhs = productions[j].rhs()[0]
-                                variable_value += lhs
-                            j += 1
-                    if productions[j].lhs().symbol() == 'constante_caracter':
-                        if productions[j + 1].lhs().symbol() == 'caracter':
-                            variable_value = "'" + productions[j + 1].rhs()[0] + "'"
-                        else:
-                            variable_value = "'" + productions[j + 1].rhs()[0].symbol() + "'"
+                if productions[j].lhs().symbol() == 'constante_caracter':
+                    print('test ', productions[j + 1].lhs().symbol())
+                    if productions[j + 1].lhs().symbol() == 'caracter':
+                        variable_value = "'" + productions[j + 2].rhs()[0] + "'"
+                    else:
+                        variable_value = "'" + productions[j + 1].rhs()[0].symbol() + "'"
                 if _current_procedure_declaration is not None:
                     _current_procedure_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
                 if _current_function_declaration is not None:
                     _current_function_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
             if item.lhs().symbol() == 'lista_parametros':
-                parameter_data_type = productions[i + 2].rhs()[0]
-                parameter_name = symbols[_symbol_table_index].identifier
-                _symbol_table_index += 1
-                if _current_procedure_declaration is not None:
-                    _current_procedure_declaration.arguments.append(
-                        VariableDeclaration(mapping[parameter_data_type], parameter_name))
-                if _current_function_declaration is not None:
-                    _current_function_declaration.arguments.append(
-                        VariableDeclaration(mapping[parameter_data_type], parameter_name))
+                # Verificar se tem parametros
+                if len(productions[i].rhs()) > 0:
+                    parameter_data_type = productions[i + 1].rhs()[0]
+                    parameter_name = symbols[_symbol_table_index].identifier
+                    _symbol_table_index += 1
+                    if _current_procedure_declaration is not None:
+                        _current_procedure_declaration.arguments.append(
+                            VariableDeclaration(mapping[parameter_data_type], parameter_name))
+                    if _current_function_declaration is not None:
+                        _current_function_declaration.arguments.append(
+                            VariableDeclaration(mapping[parameter_data_type], parameter_name))
+
         return _java_class
