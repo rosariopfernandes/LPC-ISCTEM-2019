@@ -12,7 +12,7 @@ class Lexema(object):
 class LexemeTable(object):
     CLASSIFICATION_IDENTIFIER = 'Identificador'
     CLASSIFICATION_CONSTANT_NUMERIC = 'Constante numérica'
-    CLASSIFICATION_CONSTANT_BOOLEAN = 'Constante booleana'
+    CLASSIFICATION_CONSTANT_BOOLEAN = 'Valor booleano'
     CLASSIFICATION_CONSTANT_CHARACTER = 'Constante caracter'
     CLASSIFICATION_PRIMITIVE_TYPE = 'Tipo Primitivo'
     CLASSIFICATION_RESERVED_WORD = 'Palavra Reservada'

@@ -42,6 +42,18 @@ class AuxiliarTables(object):
                 break
         return indentation
 
+    def _is_real_number(self, word: str):
+        # No caso de float
+        if word[-1] == 'f':
+            word = word[:-1]
+        parts = word.split('.')
+        if len(parts) > 2:
+            return False
+        for digit in parts:
+            if not digit.isdigit():
+                return False
+        return True
+
     def _check_value(self):
         if self._lexeme_table.get_last_token() == '=':
             indice_identificador = self._symbol_table.index_of(self._lexeme_table.get_second_last_token())
@@ -79,6 +91,12 @@ class AuxiliarTables(object):
                 elif word.isdigit():
                     self._check_value()
                     self._lexeme_table.add_numeric_constant(word, line_number)
+                elif word[-1:] == 'l':
+                    if word[:-1].isdigit():
+                        self._check_value()
+                        self._lexeme_table.add_numeric_constant(word[:-1], line_number)
+                    else:
+                        self._lexeme_table.add_unknown(word, line_number)
                 elif word == 'true' or word == 'false':
                     self._check_value()
                     self._lexeme_table.add_boolean_constant(word, line_number)
@@ -88,6 +106,8 @@ class AuxiliarTables(object):
                     self._lexeme_table.add_char_constant(word, line_number)
                 elif self._symbol_table.contains(word):
                     self._lexeme_table.add_identifier(word, line_number)
+                elif self._is_real_number(word):
+                    self._lexeme_table.add_numeric_constant(word, line_number)
                 else:
                     self._lexeme_table.add_unknown(word, line_number)
 
