@@ -220,4 +220,4 @@ class JavaParser(object):
                         _current_function_declaration.arguments.append(
                             VariableDeclaration(mapping[parameter_data_type], parameter_name))
 
-        return _java_class
+        return _java_class, _java_class.to_dict()

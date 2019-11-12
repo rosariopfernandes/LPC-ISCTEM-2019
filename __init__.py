@@ -32,7 +32,9 @@ else:
     parse_result = syntax_analysis.execute(_lexical_analysis.get_lexeme_table(), CONTEXT_FREE_GRAMMAR)
 
     if parse_result:
-        java_class = JavaParser().get_class_declaration(parse_result,
+        java_tuple = JavaParser().get_class_declaration(parse_result,
                                                         _lexical_analysis.get_symbol_table().get_identifiers(),
                                                         JAVA_PASCAL_MAPPING)
-        print_pascal_equivalent(java_class)
+        java_class = java_tuple[0]
+        response = java_tuple[1]
+        # print_pascal_equivalent(java_class)

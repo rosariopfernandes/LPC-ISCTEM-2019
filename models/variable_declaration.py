@@ -7,3 +7,10 @@ class VariableDeclaration(object):
         self.data_type = data_type
         self.variable_name = name
         self.value = value
+
+    def to_dict(self):
+        return {
+            'data_type': self.data_type,
+            'variable_name': self.variable_name,
+            'value': self.value
+        }
