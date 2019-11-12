@@ -1,5 +1,6 @@
 from nltk.grammar import Production
 from nltk.grammar import Nonterminal
+from nltk import Tree
 from identifier_table import IdentifierTable
 from models.class_declaration import ClassDeclaration
 from models.procedure_declaration import ProcedureDeclaration
@@ -45,7 +46,7 @@ class JavaParser(object):
         _current_procedure_declaration: ProcedureDeclaration = None
         _current_function_declaration: FunctionDeclaration = None
 
-        tree = list(parse_result)[0]
+        tree: Tree = list(parse_result)[0]
         # tree.pretty_print()
         productions = list(tree.productions())
         for i in range(len(productions)):

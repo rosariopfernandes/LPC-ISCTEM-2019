@@ -100,7 +100,12 @@ class AuxiliarTables(object):
                         self._check_value()
                         self._lexeme_table.add_numeric_constant(word[:-1], line_number)
                     else:
-                        self._lexeme_table.add_unknown(word, line_number)
+                        # self._lexeme_table.add_unknown(word, line_number)
+                        return {
+                            "code": -1,
+                            "message": "Erro sintáctico: Token não esperado '" + self._word + "' na linha " +
+                                       str(line_number)
+                        }
                 elif word == 'true' or word == 'false':
                     # constante do tipo booleano
                     self._check_value()
@@ -115,10 +120,17 @@ class AuxiliarTables(object):
                 elif self._is_real_number(word):
                     self._lexeme_table.add_numeric_constant(word, line_number)
                 else:
-                    self._lexeme_table.add_unknown(word, line_number)
+                    return {
+                        "code": -1,
+                        "message": "Erro sintáctico: Token não esperado '" + self._word + "' na linha " +
+                                   str(line_number)
+                    }
+        return {
+            "code": 200
+        }
 
     # Funções públicas
-    def fill_tables(self, lines: list):
+    def execute(self, lines: list):
         for line in lines:
             self._level = self._get_indentation(line) / 40
             # TODO: round this value
@@ -150,7 +162,16 @@ class AuxiliarTables(object):
                     self._lexeme_table.add_special_symbol(char, self._current_line_number)
                     self._word = ''
                 elif char == ' ' or char == ';' or char == ',':
-                    self._classify(self._word, self._current_line_number)
+                    try:
+                        response = self._classify(self._word, self._current_line_number)
+                    except IndexError:
+                        response = {
+                            "code": -1,
+                            "message": "Erro sintáctico: Token não esperado '" + self._word + "' na linha " +
+                                       str(self._current_line_number)
+                        }
+                    if response.get("code") == -1:
+                        return response
                     if char == ';':
                         self._variables_count = 0
                         self._last_data_type = ''
@@ -207,6 +228,23 @@ class AuxiliarTables(object):
                     if self._symbol_table.contains(self._word) and self._is_method_call_param:
                         self._lexeme_table.add_identifier(self._word, self._current_line_number)
             self._current_line_number += 1
+        return {
+            "code": 200,
+            "lexemes": self._get_lexemes_json(),
+            "symbols": self._get_symbols_json()
+        }
+
+    def _get_lexemes_json(self):
+        _dic_list = []
+        for lexeme in self._lexeme_table.get_lexemes():
+            _dic_list.append(lexeme.to_dict())
+        return _dic_list
+
+    def _get_symbols_json(self):
+        _dic_list = []
+        for symbol in self._symbol_table.get_identifiers():
+            _dic_list.append(symbol.to_dict())
+        return _dic_list
 
     def get_lexeme_table(self):
         return self._lexeme_table

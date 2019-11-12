@@ -8,6 +8,13 @@ class Lexema(object):
         self.classification = classification
         self.line = line
 
+    def to_dict(self):
+        return {
+            'token': self.token,
+            'classification': self.classification,
+            'line': self.line
+        }
+
 
 class LexemeTable(object):
     CLASSIFICATION_IDENTIFIER = 'Identificador'

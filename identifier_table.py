@@ -23,6 +23,20 @@ class Identifier(object):
         self.reference = reference
         self.level = level
 
+    def to_dict(self):
+        return {
+            'identifier': self.identifier,
+            'category': self.category,
+            'data_type': self.data_type,
+            'evaluation_strategy': self.evaluation_strategy,
+            'level': self.level,
+            'memory_structure': self.memory_structure,
+            'params_nr': self.params_nr,
+            'params_sequence': self.params_sequence,
+            'reference': self.reference,
+            'value': self.value,
+        }
+
 
 class IdentifierTable(object):
     CATEGORY_CLASS = 'Classe'

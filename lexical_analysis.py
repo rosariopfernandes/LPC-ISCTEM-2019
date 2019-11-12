@@ -1,7 +1,8 @@
-from nltk import ChartParser
+from nltk import TopDownChartParser
+from nltk import CFG
 
 
-def execute(lexeme_table, grammar):
+def execute(lexeme_table, grammar: CFG):
     sentence = []
     for lexema in lexeme_table.get_lexemes():
         # Separar caracteres no caso de identificadores ou constantes
@@ -10,7 +11,8 @@ def execute(lexeme_table, grammar):
                 sentence.append(char)
         else:
             sentence.append(lexema.token)
-    parser = ChartParser(grammar)
+    # grammar.check_coverage(sentence)
+    parser = TopDownChartParser(grammar)
     try:
         return parser.parse(sentence)
     except ValueError as e:
