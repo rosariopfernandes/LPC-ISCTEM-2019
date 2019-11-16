@@ -37,4 +37,6 @@ else:
                                                         JAVA_PASCAL_MAPPING)
         java_class = java_tuple[0]
         response = java_tuple[1]
-        # print_pascal_equivalent(java_class)
+        # print(response)
+        if java_class is not None:
+            print_pascal_equivalent(java_class)

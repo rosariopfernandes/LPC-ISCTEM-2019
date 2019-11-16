@@ -13,7 +13,6 @@ public class Ex {
         // TODO: Support method calls attributions
         // laptop = atrOito();
         // b = 300;
-        // TODO: Support passing arguments
         metodo(abc,def);
     }
 

@@ -46,12 +46,25 @@ class JavaParser(object):
         _current_procedure_declaration: ProcedureDeclaration = None
         _current_function_declaration: FunctionDeclaration = None
 
+        # Verificar se existe alguma variável declarada 2 vezes
+        for i in range(len(symbols)):
+            symbol = symbols[i]
+            for j in range(len(symbols)):
+                if i == j:
+                    continue
+                another_symbol = symbols[j]
+                if symbol.identifier == another_symbol.identifier and another_symbol.level >= symbol.level:
+                    return None, {
+                        'code': -1,
+                        'message': 'Símbolo ' + symbol.identifier + ' já foi declarado.'
+                    }
+
         tree: Tree = list(parse_result)[0]
         # tree.pretty_print()
         productions = list(tree.productions())
         for i in range(len(productions)):
             item: Production = productions[i]
-            print(i, ': ', item)
+            # print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
                 if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_CLASS:
                     _java_class.class_name = symbols[_symbol_table_index].identifier
