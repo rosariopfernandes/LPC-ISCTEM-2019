@@ -23,6 +23,20 @@ class Identifier(object):
         self.reference = reference
         self.level = level
 
+    def to_dict(self):
+        return {
+            'identifier': self.identifier,
+            'category': self.category,
+            'data_type': self.data_type,
+            'evaluation_strategy': self.evaluation_strategy,
+            'level': self.level,
+            'memory_structure': self.memory_structure,
+            'params_nr': self.params_nr,
+            'params_sequence': self.params_sequence,
+            'reference': self.reference,
+            'value': self.value,
+        }
+
 
 class IdentifierTable(object):
     CATEGORY_CLASS = 'Classe'
@@ -38,7 +52,7 @@ class IdentifierTable(object):
     def add_variable(self, identifier: str, data_type: str, value: str, reference: str, level: float):
         self._identifiers.append(Identifier(identifier=identifier, category=self.CATEGORY_VARIABLE,
                                             data_type=data_type, memory_structure='Primitivo', value=value,
-                                            evaluation_strategy='Por valor', reference=reference,
+                                            evaluation_strategy='-', reference=reference,
                                             level=str(level)))
 
     def add_method(self, identifier: str, data_type: str, parameter_count: int, parameter_sequence: str,
@@ -51,6 +65,7 @@ class IdentifierTable(object):
     def add_parameter(self, identifier: str, data_type: str, value: str, reference: str, level: float):
         self._identifiers.append(Identifier(identifier=identifier, category=self.CATEGORY_PARAMETER,
                                             data_type=data_type, memory_structure='Primitivo',
+                                            evaluation_strategy='Por valor',
                                             value=value, reference=reference, level=str(level)))
 
     def index_of(self, identifier: str):

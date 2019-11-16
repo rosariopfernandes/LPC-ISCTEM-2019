@@ -1,16 +1,19 @@
 public class Ex {
 
-    boolean laptop = false;
-    int b = 200;
+    boolean abc = false;
+    int def = 200;
 
-    int atrOito(char a, int b) {
+    int metodo(char param1, int param2) {
         // ba = '&';
-        laptop = true;
+        // laptop = true;
         return 5;
     }
 
-    void semRetorno() {
-        b = 300;
+    void s() {
+        // TODO: Support method calls attributions
+        // laptop = atrOito();
+        // b = 300;
+        metodo(abc,def);
     }
 
     /*int c() {

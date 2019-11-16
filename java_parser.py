@@ -1,11 +1,13 @@
 from nltk.grammar import Production
 from nltk.grammar import Nonterminal
+from nltk import Tree
 from identifier_table import IdentifierTable
 from models.class_declaration import ClassDeclaration
 from models.procedure_declaration import ProcedureDeclaration
 from models.function_declaration import FunctionDeclaration
 from models.variable_assignment import VariableAssignment
 from models.variable_declaration import VariableDeclaration
+from models.method_call import MethodCall
 
 
 class JavaParser(object):
@@ -21,6 +23,22 @@ class JavaParser(object):
                 indentation_str += ' '
         return indentation_str
 
+    def _parse_identifier(self, productions, i):
+        if len(productions[i + 1].rhs()) == 1:
+            # identificador de 1 letra
+            variable_name = productions[i + 3].rhs()[0]
+        else:
+            # identificador com mais de 1 letra
+            # vamos formar o nome da variavel
+            j = i + 3
+            variable_name = ''
+            while productions[j].lhs().symbol() == 'letra':
+                lhs = productions[j].rhs()[0]
+                variable_name += lhs
+                j += 2
+            j += 1
+        return variable_name
+
     def get_class_declaration(self, parse_result, symbols: list, mapping: dict):
         _symbol_table_index = 0
         _is_inside_method = False
@@ -28,12 +46,25 @@ class JavaParser(object):
         _current_procedure_declaration: ProcedureDeclaration = None
         _current_function_declaration: FunctionDeclaration = None
 
-        tree = list(parse_result)[0]
+        # Verificar se existe alguma variável declarada 2 vezes
+        for i in range(len(symbols)):
+            symbol = symbols[i]
+            for j in range(len(symbols)):
+                if i == j:
+                    continue
+                another_symbol = symbols[j]
+                if symbol.identifier == another_symbol.identifier and another_symbol.level >= symbol.level:
+                    return None, {
+                        'code': -1,
+                        'message': 'Símbolo ' + symbol.identifier + ' já foi declarado.'
+                    }
+
+        tree: Tree = list(parse_result)[0]
         # tree.pretty_print()
         productions = list(tree.productions())
         for i in range(len(productions)):
             item: Production = productions[i]
-            print(i, ': ', item)
+            # print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
                 if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_CLASS:
                     _java_class.class_name = symbols[_symbol_table_index].identifier
@@ -121,6 +152,32 @@ class JavaParser(object):
                     # TODO: Support return of values
                     # TODO: Support return of identifiers with more than 1 letter
                     _current_function_declaration.return_value = productions[i+3].rhs()[0]
+            if item.lhs().symbol() == 'chamada_metodo':
+                method_name = self._parse_identifier(productions, i)
+                _method_arguments = []
+                j = i+1
+                # Ir à lista de argumentos
+                current_symbol = productions[j].lhs().symbol()
+                while current_symbol != 'lista_argumentos':
+                    j += 1
+                    current_symbol = productions[j].lhs().symbol()
+                _argument_name = ''
+                # Pegar os argumentos
+                while current_symbol != 'simbolo_fim_instrucao':
+                    current_symbol = productions[j].lhs().symbol()
+                    if current_symbol == 'letra':
+                        _argument_name += productions[j].rhs()[0]
+                    if current_symbol == 'simbolo_separador':
+                        _method_arguments.append(_argument_name)
+                        _argument_name = ''
+                    j += 1
+                # Pegar o último argumento
+                if _argument_name != '':
+                    _method_arguments.append(_argument_name)
+                if _current_function_declaration is not None:
+                    _current_function_declaration.assignments.append(MethodCall(method_name, _method_arguments))
+                if _current_procedure_declaration is not None:
+                    _current_procedure_declaration.assignments.append(MethodCall(method_name, _method_arguments))
             if item.lhs().symbol() == 'atribuicao_variavel':
                 if len(productions[i + 1].rhs()) == 1:
                     # identificador de 1 letra
@@ -176,4 +233,4 @@ class JavaParser(object):
                         _current_function_declaration.arguments.append(
                             VariableDeclaration(mapping[parameter_data_type], parameter_name))
 
-        return _java_class
+        return _java_class, _java_class.to_dict()
