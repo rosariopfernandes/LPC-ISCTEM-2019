@@ -8,6 +8,7 @@ from models.function_declaration import FunctionDeclaration
 from models.variable_assignment import VariableAssignment
 from models.variable_declaration import VariableDeclaration
 from models.method_call import MethodCall
+from models.structure_if import StructureIf
 
 
 class JavaParser(object):
@@ -22,6 +23,29 @@ class JavaParser(object):
             for i in range(0, self.indentation):
                 indentation_str += ' '
         return indentation_str
+
+    def _parse_operand(self, productions: list, i: int):
+        operando = ''
+        tipo_operando = str(productions[i + 2].rhs()[0])
+        print(tipo_operando)
+        if tipo_operando == 'identificador':
+            operando = self._parse_identifier(productions, i + 2)
+        elif tipo_operando == 'constante_inteira':
+            # Get constante inteira
+            j = i + 4
+            while productions[j].lhs().symbol() == 'digito':
+                lhs = str(productions[j].rhs()[0])
+                operando += lhs
+                j += 2
+        else:
+            j = i + 4
+            while productions[j].lhs().symbol() != 'inicio_bloco' and\
+                    productions[j].lhs().symbol() != 'operador_comparacao':
+                if productions[j].lhs().symbol() != 'constante_inteira':
+                    lhs = str(productions[j].rhs()[0])
+                    operando += lhs
+                j += 1
+        return operando
 
     def _parse_identifier(self, productions, i):
         if len(productions[i + 1].rhs()) == 1:
@@ -64,7 +88,7 @@ class JavaParser(object):
         productions = list(tree.productions())
         for i in range(len(productions)):
             item: Production = productions[i]
-            # print(i, ': ', item)
+            print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
                 if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_CLASS:
                     _java_class.class_name = symbols[_symbol_table_index].identifier
@@ -232,5 +256,33 @@ class JavaParser(object):
                     if _current_function_declaration is not None:
                         _current_function_declaration.arguments.append(
                             VariableDeclaration(mapping[parameter_data_type], parameter_name))
+            if item.lhs().symbol() == 'estrutura_if':
+                if str(productions[i+1].rhs()[0]) == 'identificador':
+                    if_condition = self._parse_identifier(productions, i + 1)
+                elif str(productions[i+1].rhs()[0]) == 'constante_booleana':
+                    # Só colocou uma constante booleana
+                    if_condition = str(productions[i+2].rhs()[0])
+                else:
+                    # Colocou operando1 operador operando2
+                    # Obter operando1
+                    if_condition = self._parse_operand(productions, i)
+
+                    # Obter operador
+                    j = i+1
+                    while productions[j].lhs().symbol() != 'operador_comparacao':
+                        j += 1
+                    operador = productions[j].rhs()[0]
+                    if_condition += ' ' + operador
+
+                    # Obter operando2
+                    if_condition += ' ' + self._parse_operand(productions, j-1)
+
+                stru = StructureIf()
+                stru.condition = str(if_condition)
+                # TODO: Add assignments
+                if _current_procedure_declaration is not None:
+                    _current_procedure_declaration.assignments.append(stru)
+                if _current_function_declaration is not None:
+                    _current_function_declaration.assignments.append(stru)
 
         return _java_class, _java_class.to_dict()

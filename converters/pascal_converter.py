@@ -47,10 +47,14 @@ def _append_assignments(method, lines):
         if type(assignment) == VariableAssignment:
             # Declaração de variáveis
             lines.append('   ' + assignment.variable_name + ' := ' + assignment.value + ';')
-        else:
+        elif type(assignment) == MethodCall:
             # Chamada de métodos
             lines.append('   ' + assignment.method_name + '(' + _get_passed_arguments(assignment) + ');')
-            # TODO: add structures if and while here
+        else:
+            # Estructura if
+            lines.append('   if ' + assignment.condition + ' then')
+            lines.append('   ')
+        # TODO: add structure while here
 
 
 def get_pascal_equivalent(_java_class: ClassDeclaration):
