@@ -13,7 +13,17 @@ require(['vs/editor/editor.main'], function() {
         scrollBeyondLastLine: false,
     });
 
+    // Comandos
+    java_editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
+        compileJavaCode();
+    });
+
+    java_editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_O, function() {
+        document.getElementById('file-input').click();
+    });
+
     document.getElementById('btn-novo').addEventListener('click', function (e) {
+        document.getElementById('file-input').value = '';
         java_editor.setValue([
             'public class HelloWorld {',
             '    int x = 2019;',
