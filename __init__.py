@@ -13,7 +13,7 @@ app = Flask(__name__)
 @app.route("/", methods=['GET', 'POST'])
 def get():
     lines = request.json.split('\n')
-    print('lines=', lines)
+    # print('lines=', lines)
 
     if len(lines) == 0:
         exit()
@@ -25,9 +25,9 @@ def get():
     else:
         # print(response.get("lexemes"))
         # print(response.get("symbols"))
-        outputs.print_lexema_table(_lexical_analysis.get_lexeme_table())
+        # outputs.print_lexema_table(_lexical_analysis.get_lexeme_table())
 
-        outputs.print_symbol_table(_lexical_analysis.get_symbol_table())
+        # outputs.print_symbol_table(_lexical_analysis.get_symbol_table())
 
         # [x] Declaração de variáveis do tipo primitivo local
         # [X] Declaração de variáveis do tipo primitivo global
@@ -38,8 +38,9 @@ def get():
 
         parse_result = syntax_analysis.execute(_lexical_analysis.get_lexeme_table(), CONTEXT_FREE_GRAMMAR)
 
-        if parse_result is not None:
-            java_tuple = JavaParser().get_class_declaration(parse_result,
+        if parse_result['code'] != -1:
+            # TODO: Deal with the IndexError thrown here when the code cant be parsed by nltk
+            java_tuple = JavaParser().get_class_declaration(parse_result['result'],
                                                             _lexical_analysis.get_symbol_table().get_identifiers(),
                                                             JAVA_PASCAL_MAPPING)
             java_class = java_tuple[0]
@@ -60,9 +61,10 @@ def get():
                 # for line in pascal_lines:
                 #     print(line)
         else:
-            print('parse_result is None')
+            res = jsonify(parse_result)
+            res.headers.add('Access-Control-Allow-Origin', '*')
+            return res
 
 
 if __name__ == "__main__":
-    app.debug = True
     app.run()

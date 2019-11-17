@@ -14,6 +14,13 @@ def execute(lexeme_table, grammar: CFG):
     # grammar.check_coverage(sentence)
     parser = TopDownChartParser(grammar)
     try:
-        return parser.parse(sentence)
+        result = parser.parse(sentence)
+        return {
+            'code': 200,
+            'result': result
+        }
     except ValueError as e:
-        print(e.args[0])
+        return {
+            'code': -1,
+            'message': e.args[0]
+        }

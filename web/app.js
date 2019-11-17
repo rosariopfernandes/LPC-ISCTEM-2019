@@ -54,7 +54,8 @@ function compileJavaCode() {
         .then(function (response) {
             if (response.code === -1) {
                 document.getElementById('tables-container').style.visibility = 'hidden';
-                pascal_editor.setValue(response.message);
+                // TODO: highlight line that contains an error
+                pascal_editor.setValue('{ ' + response.message + ' }');
             } else {
                 document.getElementById('tables-container').style.visibility = 'visible';
                 filename = response.java_class.class_name;
