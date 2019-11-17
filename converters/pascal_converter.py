@@ -42,23 +42,34 @@ def _append_local_declarations(method, lines):
         lines.append(declaration_output + ';')
 
 
-def _append_assignments(method, lines):
+def _get_indentation(indentation: int):
+    spaces = ''
+    for i in range(indentation):
+        spaces += ' '
+    return spaces
+
+
+def _append_assignments(indentation: int, method, lines):
     for assignment in method.assignments:
+        print(assignment.to_dict())
         if type(assignment) == VariableAssignment:
-            # Declaração de variáveis
-            lines.append('   ' + assignment.variable_name + ' := ' + assignment.value + ';')
+            # Atribuição de variáveis
+            lines.append(_get_indentation(indentation) + assignment.variable_name + ' := ' + assignment.value + ';')
         elif type(assignment) == MethodCall:
             # Chamada de métodos
-            lines.append('   ' + assignment.method_name + '(' + _get_passed_arguments(assignment) + ');')
+            lines.append(_get_indentation(indentation) + assignment.method_name + '(' + _get_passed_arguments(assignment) + ');')
         else:
             # Estructura if
-            lines.append('   if ' + assignment.condition + ' then')
-            lines.append('   ')
+            lines.append(_get_indentation(indentation) + 'if (' + assignment.condition + ') then')
+            lines.append(_get_indentation(indentation) + 'begin')
+            # print(assignment.to_dict())
+            _append_assignments(indentation + 3, assignment, lines)
+            lines.append(_get_indentation(indentation) + 'end;')
         # TODO: add structure while here
 
 
 def get_pascal_equivalent(_java_class: ClassDeclaration):
-
+    indentation = 3
     # Nome do programa
     pascal_lines = ['program ' + _java_class.class_name + ';', '']
 
@@ -78,7 +89,7 @@ def get_pascal_equivalent(_java_class: ClassDeclaration):
         pascal_lines.append('function ' + _function.function_name + '(' + function_arguments + '): ' + _function.data_type + ';')
         _append_local_declarations(_function, pascal_lines)
         pascal_lines.append('begin')
-        _append_assignments(_function, pascal_lines)
+        _append_assignments(indentation, _function, pascal_lines)
         # Imprimir o retorno:
         pascal_lines.append('   ' + _function.function_name + ' := ' + _function.return_value + ';')
         pascal_lines.append('end;')
@@ -90,7 +101,7 @@ def get_pascal_equivalent(_java_class: ClassDeclaration):
         pascal_lines.append('procedure ' + procedure.procedure_name + '(' + procedure_arguments + ');')
         _append_local_declarations(procedure, pascal_lines)
         pascal_lines.append('begin')
-        _append_assignments(procedure, pascal_lines)
+        _append_assignments(indentation, procedure, pascal_lines)
         pascal_lines.append('end;')
         pascal_lines.append('')
 

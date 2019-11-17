@@ -1,7 +1,7 @@
 from nltk import CFG
 
 # Palavras Reservadas
-RESERVED_WORDS = ['public', 'class', 'for', 'while', 'if', 'static', 'private', 'return']
+RESERVED_WORDS = ['public', 'class', 'for', 'while', 'if', 'static', 'private', 'return', 'else']
 
 # Tipos primitivos
 PRIMITIVE_TYPES = ['int', 'char', 'double', 'float', 'void', 'boolean', 'short', 'long', 'byte']
@@ -37,7 +37,7 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     corpo_metodo -> chamada_metodo corpo_metodo
     corpo_metodo -> estrutura_if corpo_metodo
     
-    estrutura_if -> "if" '(' condicao ')' inicio_bloco fim_bloco
+    estrutura_if -> "if" '(' condicao ')' inicio_bloco corpo_metodo fim_bloco
     condicao -> identificador
     condicao -> constante_booleana
     condicao -> operando operador_comparacao operando

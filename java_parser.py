@@ -12,17 +12,6 @@ from models.structure_if import StructureIf
 
 
 class JavaParser(object):
-    indentation: int
-
-    def __init__(self):
-        self.indentation = 0
-
-    def _get_indentation(self):
-        indentation_str = ''
-        if self.indentation > 0:
-            for i in range(0, self.indentation):
-                indentation_str += ' '
-        return indentation_str
 
     def _parse_operand(self, productions: list, i: int):
         operando = ''
@@ -63,12 +52,27 @@ class JavaParser(object):
             j += 1
         return variable_name
 
+    def _append_assignment(self, _current_function_declaration, _current_procedure_declaration,
+                           _current_if_declaration, assignment):
+        if _current_function_declaration is not None:
+            if _current_if_declaration is None:
+                _current_function_declaration.assignments.append(assignment)
+            else:
+                _current_if_declaration.assignments.append(assignment)
+        if _current_procedure_declaration is not None:
+            if _current_if_declaration is None:
+                _current_procedure_declaration.assignments.append(assignment)
+            else:
+                _current_if_declaration.assignments.append(assignment)
+
     def get_class_declaration(self, parse_result, symbols: list, mapping: dict):
         _symbol_table_index = 0
         _is_inside_method = False
         _java_class = ClassDeclaration()
         _current_procedure_declaration: ProcedureDeclaration = None
         _current_function_declaration: FunctionDeclaration = None
+        # TODO: Support nested ifs
+        _current_if_declaration: StructureIf = None
 
         # Verificar se existe alguma variável declarada 2 vezes
         for i in range(len(symbols)):
@@ -96,21 +100,27 @@ class JavaParser(object):
                 else:
                     # TODO: Throw error
                     print('Declaração de classe não encontrada')
-            if item.lhs().symbol() == 'inicio_bloco':
-                # _output_lines.append('begin')
-                # TODO: Add 3 instead of assigning 3
-                self.indentation = 3
+            # if item.lhs().symbol() == 'inicio_bloco':
+            #     # _output_lines.append('begin')
+            #     self.indentation = 3
             if item.lhs().symbol() == 'fim_bloco':
                 if i != len(productions) - 1:
                     # _output_lines.append('end;')
-                    if _current_procedure_declaration is not None:
-                        _java_class.procedure_declarations.append(_current_procedure_declaration)
-                        _current_procedure_declaration = None
-                    if _current_function_declaration is not None:
-                        _java_class.function_declarations.append(_current_function_declaration)
-                        _current_function_declaration = None
-                    _is_inside_method = False
-                self.indentation = 0
+                    if _current_if_declaration is not None:
+                        if _current_procedure_declaration is not None:
+                            _current_procedure_declaration.assignments.append(_current_if_declaration)
+                        if _current_function_declaration is not None:
+                            _current_function_declaration.assignments.append(_current_if_declaration)
+                        _current_if_declaration = None
+                    else:
+                        if _current_procedure_declaration is not None:
+                            _java_class.procedure_declarations.append(_current_procedure_declaration)
+                            _current_procedure_declaration = None
+                        if _current_function_declaration is not None:
+                            _java_class.function_declarations.append(_current_function_declaration)
+                            _current_function_declaration = None
+                        _is_inside_method = False
+                # self.indentation = 0
             if item.lhs().symbol() == 'declaracao_variavel':
                 var_name = symbols[_symbol_table_index].identifier
                 var_data_type = mapping[symbols[_symbol_table_index].data_type]
@@ -144,10 +154,8 @@ class JavaParser(object):
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
                 if _is_inside_method:
-                    if _current_function_declaration is not None:
-                        _current_function_declaration.local_declarations.append(var_declaration)
-                    if _current_procedure_declaration is not None:
-                        _current_procedure_declaration.local_declarations.append(var_declaration)
+                    self._append_assignment(_current_function_declaration, _current_procedure_declaration,
+                                            _current_if_declaration, var_declaration)
                 else:
                     _java_class.variable_declarations.append(var_declaration)
             if item.lhs().symbol() == 'declaracao_metodo':
@@ -198,10 +206,8 @@ class JavaParser(object):
                 # Pegar o último argumento
                 if _argument_name != '':
                     _method_arguments.append(_argument_name)
-                if _current_function_declaration is not None:
-                    _current_function_declaration.assignments.append(MethodCall(method_name, _method_arguments))
-                if _current_procedure_declaration is not None:
-                    _current_procedure_declaration.assignments.append(MethodCall(method_name, _method_arguments))
+                self._append_assignment(_current_function_declaration, _current_procedure_declaration,
+                                        _current_if_declaration, MethodCall(method_name, _method_arguments))
             if item.lhs().symbol() == 'atribuicao_variavel':
                 if len(productions[i + 1].rhs()) == 1:
                     # identificador de 1 letra
@@ -240,22 +246,17 @@ class JavaParser(object):
                         variable_value = "'" + productions[j + 2].rhs()[0] + "'"
                     else:
                         variable_value = "'" + productions[j + 1].rhs()[0].symbol() + "'"
-                if _current_procedure_declaration is not None:
-                    _current_procedure_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
-                if _current_function_declaration is not None:
-                    _current_function_declaration.assignments.append(VariableAssignment(variable_name, variable_value))
+                self._append_assignment(_current_function_declaration, _current_procedure_declaration,
+                                        _current_if_declaration, VariableAssignment(variable_name, variable_value))
             if item.lhs().symbol() == 'lista_parametros':
                 # Verificar se tem parametros
                 if len(productions[i].rhs()) > 0:
                     parameter_data_type = productions[i + 1].rhs()[0]
                     parameter_name = symbols[_symbol_table_index].identifier
                     _symbol_table_index += 1
-                    if _current_procedure_declaration is not None:
-                        _current_procedure_declaration.arguments.append(
-                            VariableDeclaration(mapping[parameter_data_type], parameter_name))
-                    if _current_function_declaration is not None:
-                        _current_function_declaration.arguments.append(
-                            VariableDeclaration(mapping[parameter_data_type], parameter_name))
+                    self._append_assignment(_current_function_declaration, _current_procedure_declaration,
+                                            _current_if_declaration, VariableDeclaration(mapping[parameter_data_type],
+                                                                                         parameter_name))
             if item.lhs().symbol() == 'estrutura_if':
                 if str(productions[i+1].rhs()[0]) == 'identificador':
                     if_condition = self._parse_identifier(productions, i + 1)
@@ -277,12 +278,10 @@ class JavaParser(object):
                     # Obter operando2
                     if_condition += ' ' + self._parse_operand(productions, j-1)
 
-                stru = StructureIf()
-                stru.condition = str(if_condition)
+                _current_if_declaration = StructureIf()
+                _current_if_declaration.condition = str(if_condition)
                 # TODO: Add assignments
-                if _current_procedure_declaration is not None:
-                    _current_procedure_declaration.assignments.append(stru)
-                if _current_function_declaration is not None:
-                    _current_function_declaration.assignments.append(stru)
+                # self._append_assignment(_current_function_declaration, _current_procedure_declaration,
+                #                         _current_if_declaration, _current_if_declaration)
 
         return _java_class, _java_class.to_dict()
