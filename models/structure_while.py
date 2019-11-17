@@ -7,7 +7,10 @@ class StructureWhile(object):
         self.assignments = []
 
     def to_dict(self):
+        _dict_assignments = []
+        for assignment in self.assignments:
+            _dict_assignments.append(assignment.to_dict())
         return {
             'condition': self.condition,
-            'assignments': self.assignments
+            'assignments': _dict_assignments
         }
