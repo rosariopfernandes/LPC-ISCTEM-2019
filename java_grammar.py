@@ -37,7 +37,9 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     corpo_metodo -> chamada_metodo corpo_metodo
     corpo_metodo -> estrutura_if corpo_metodo
     
+    estrutura_if -> "if" '(' condicao ')' inicio_bloco corpo_metodo fim_bloco estrutura_else
     estrutura_if -> "if" '(' condicao ')' inicio_bloco corpo_metodo fim_bloco
+    estrutura_else -> "else" inicio_bloco corpo_metodo fim_bloco
     estrutura_while -> "while" '(' condicao ')' inicio_bloco corpo_metodo fim_bloco
     condicao -> identificador
     condicao -> constante_booleana

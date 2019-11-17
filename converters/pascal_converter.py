@@ -49,8 +49,11 @@ def _get_indentation(indentation: int):
     return spaces
 
 
-def _append_assignments(indentation: int, method, lines):
-    for assignment in method.assignments:
+def _append_assignments(indentation: int, method, lines, is_else=False):
+    _assignments = method.assignments
+    if is_else:
+        _assignments = method.else_assignments
+    for assignment in _assignments:
         print(assignment.to_dict())
         if type(assignment) == VariableAssignment:
             # Atribuição de variáveis
@@ -60,11 +63,17 @@ def _append_assignments(indentation: int, method, lines):
             lines.append(_get_indentation(indentation) + assignment.method_name + '(' + _get_passed_arguments(assignment) + ');')
         else:
             # Estructura if
-            lines.append(_get_indentation(indentation) + 'if (' + assignment.condition + ') then')
+            lines.append(_get_indentation(indentation) + 'if ( ' + assignment.condition + ' ) then')
             lines.append(_get_indentation(indentation) + 'begin')
             # print(assignment.to_dict())
             _append_assignments(indentation + 3, assignment, lines)
             lines.append(_get_indentation(indentation) + 'end;')
+            if len(assignment.else_assignments) > 0:
+                lines.append(_get_indentation(indentation) + 'else')
+                lines.append(_get_indentation(indentation) + 'begin')
+                _append_assignments(indentation + 3, assignment, lines, True)
+                lines.append(_get_indentation(indentation) + 'end;')
+            lines.append(_get_indentation(indentation))
         # TODO: add structure while here
 
 
