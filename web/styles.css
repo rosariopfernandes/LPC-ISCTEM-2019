@@ -111,6 +111,7 @@ html, body {
   -webkit-align-items: center;
       -ms-flex-align: center;
           align-items: center;
+  visibility: hidden;
 }
 
 .demo-charts h4 {
@@ -146,8 +147,9 @@ html, body {
     margin-right: 24px;
 }
 
-.actions button {
+.actions button, a {
     margin-right: 12px;
+    margin-left: 12px;
     margin-bottom: 8px;
     float: right;
 }

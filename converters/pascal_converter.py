@@ -32,65 +32,67 @@ def _get_arguments(method):
     return procedure_arguments
 
 
-def _print_local_declarations(method):
+def _append_local_declarations(method, lines):
     if len(method.local_declarations) > 0:
-        print('var')
+        lines.append('var')
     for declaration in method.local_declarations:
         declaration_output = '   ' + declaration.variable_name + ': ' + declaration.data_type
         if declaration.value is not None:
             declaration_output += ' := ' + declaration.value
-        print(declaration_output + ';')
+        lines.append(declaration_output + ';')
 
 
-def _print_assignemnts(method):
+def _append_assignments(method, lines):
     for assignment in method.assignments:
         if type(assignment) == VariableAssignment:
             # Declaração de variáveis
-            print('   ' + assignment.variable_name + ' := ' + assignment.value + ';')
+            lines.append('   ' + assignment.variable_name + ' := ' + assignment.value + ';')
         else:
             # Chamada de métodos
-            print('   ' + assignment.method_name + '(' + _get_passed_arguments(assignment) + ');')
+            lines.append('   ' + assignment.method_name + '(' + _get_passed_arguments(assignment) + ');')
             # TODO: add structures if and while here
 
 
-def print_pascal_equivalent(_java_class: ClassDeclaration):
-    # Imprime nome do programa
-    print('program ' + _java_class.class_name + ';')
-    print()
+def get_pascal_equivalent(_java_class: ClassDeclaration):
+
+    # Nome do programa
+    pascal_lines = ['program ' + _java_class.class_name + ';', '']
 
     # Imprime variáveis globais
     if len(_java_class.variable_declarations) > 0:
-        print('var')
+        pascal_lines.append('var')
     for variavel in _java_class.variable_declarations:
         declaration_output = '   ' + variavel.variable_name + ': ' + variavel.data_type
         if variavel.value is not None:
             declaration_output += ' := ' + variavel.value
-        print(declaration_output + ';')
-    print()
+        pascal_lines.append(declaration_output + ';')
+    pascal_lines.append('')
 
     # Imprime Functions
     for _function in _java_class.function_declarations:
         function_arguments = _get_arguments(_function)
-        print('function ' + _function.function_name + '(' + function_arguments + '): ' + _function.data_type + ';')
-        _print_local_declarations(_function)
-        print('begin')
-        _print_assignemnts(_function)
+        pascal_lines.append('function ' + _function.function_name + '(' + function_arguments + '): ' + _function.data_type + ';')
+        _append_local_declarations(_function, pascal_lines)
+        pascal_lines.append('begin')
+        _append_assignments(_function, pascal_lines)
         # Imprimir o retorno:
-        print('   ' + _function.function_name + ' := ' + _function.return_value + ';')
-        print('end;')
-        print()
+        pascal_lines.append('   ' + _function.function_name + ' := ' + _function.return_value + ';')
+        pascal_lines.append('end;')
+        pascal_lines.append('')
 
     # Imprime Procedures
     for procedure in _java_class.procedure_declarations:
         procedure_arguments = _get_arguments(procedure)
-        print('procedure ' + procedure.procedure_name + '(' + procedure_arguments + ');')
-        _print_local_declarations(procedure)
-        print('begin')
-        _print_assignemnts(procedure)
-        print('end;')
-        print()
+        pascal_lines.append('procedure ' + procedure.procedure_name + '(' + procedure_arguments + ');')
+        _append_local_declarations(procedure, pascal_lines)
+        pascal_lines.append('begin')
+        _append_assignments(procedure, pascal_lines)
+        pascal_lines.append('end;')
+        pascal_lines.append('')
 
     # Imprime o método Principal
-    print('begin')
-    print("   writeln('Hello World');")
-    print('end.')
+    pascal_lines.append('begin')
+    pascal_lines.append("   ")
+    pascal_lines.append('end.')
+
+    return pascal_lines

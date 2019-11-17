@@ -26,7 +26,10 @@ class LexemeTable(object):
     CLASSIFICATION_SPECIAL_SYMBOL = 'Símbolo especial'
     CLASSIFICATION_UNKNOWN = 'Não reconhecido'
 
-    _lexemes: list = []
+    _lexemes: list
+
+    def __init__(self):
+        self._lexemes = []
 
     def add_boolean_constant(self, word: str, line_number: int):
         self._lexemes.append(Lexema(word, self.CLASSIFICATION_CONSTANT_BOOLEAN, line_number))
