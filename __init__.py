@@ -25,7 +25,7 @@ def get():
     else:
         # print(response.get("lexemes"))
         # print(response.get("symbols"))
-        # outputs.print_lexema_table(_lexical_analysis.get_lexeme_table())
+        outputs.print_lexema_table(_lexical_analysis.get_lexeme_table())
 
         # outputs.print_symbol_table(_lexical_analysis.get_symbol_table())
 

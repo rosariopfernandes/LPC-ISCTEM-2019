@@ -6,7 +6,7 @@ require(['vs/editor/editor.main'], function() {
     java_editor = monaco.editor.create(document.getElementById('source-container'), {
         value: [
             'public class HelloWorld {',
-            '    int x = 2019;',
+            '    int ano = 2019;',
             '}'
         ].join('\n'),
         language: 'java',
@@ -26,7 +26,7 @@ require(['vs/editor/editor.main'], function() {
         document.getElementById('file-input').value = '';
         java_editor.setValue([
             'public class HelloWorld {',
-            '    int x = 2019;',
+            '    int ano = 2019;',
             '}'
         ].join('\n'))
     });
@@ -36,7 +36,7 @@ require(['vs/editor/editor.main'], function() {
             'program HelloWorld;',
             '',
             'var',
-            '   x: integer := 2019;',
+            '   ano: integer := 2019;',
             '',
             'begin',
             '',
