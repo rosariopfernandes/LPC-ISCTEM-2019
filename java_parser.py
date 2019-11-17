@@ -56,7 +56,7 @@ class JavaParser(object):
                 if symbol.identifier == another_symbol.identifier and another_symbol.level >= symbol.level:
                     return None, {
                         'code': -1,
-                        'message': 'Símbolo ' + symbol.identifier + ' já foi declarado.'
+                        'message': 'Símbolo "' + symbol.identifier + '" já foi declarado.'
                     }
 
         tree: Tree = list(parse_result)[0]

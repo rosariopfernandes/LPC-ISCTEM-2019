@@ -131,6 +131,7 @@ class AuxiliarTables(object):
 
     # Funções públicas
     def execute(self, lines: list):
+
         for line in lines:
             self._level = self._get_indentation(line) / 40
             # TODO: round this value

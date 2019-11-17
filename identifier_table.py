@@ -44,7 +44,10 @@ class IdentifierTable(object):
     CATEGORY_METHOD = 'Metodo'
     CATEGORY_PARAMETER = 'Parametro'
 
-    _identifiers: list = []
+    _identifiers: list
+
+    def __init__(self):
+        self._identifiers = []
 
     def add_class(self, identifier: str, level: float):
         self._identifiers.append(Identifier(identifier=identifier, category=self.CATEGORY_CLASS, level=str(level)))
