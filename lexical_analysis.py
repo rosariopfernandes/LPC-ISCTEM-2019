@@ -103,7 +103,7 @@ class AuxiliarTables(object):
                         # self._lexeme_table.add_unknown(word, line_number)
                         return {
                             "code": -1,
-                            "message": "Erro sintáctico: Token não esperado '" + self._word + "' na linha " +
+                            "message": "Erro léxico: Token não esperado '" + self._word + "' na linha " +
                                        str(line_number)
                         }
                 elif word == 'true' or word == 'false':
@@ -122,7 +122,7 @@ class AuxiliarTables(object):
                 else:
                     return {
                         "code": -1,
-                        "message": "Erro sintáctico: Token não esperado '" + self._word + "' na linha " +
+                        "message": "Erro léxico: Token não esperado '" + self._word + "' na linha " +
                                    str(line_number)
                     }
         return {
@@ -168,7 +168,7 @@ class AuxiliarTables(object):
                     except IndexError:
                         response = {
                             "code": -1,
-                            "message": "Erro sintáctico: Token não esperado '" + self._word + "' na linha " +
+                            "message": "Erro léxico: Token não esperado '" + self._word + "' na linha " +
                                        str(self._current_line_number)
                         }
                     if response.get("code") == -1:
