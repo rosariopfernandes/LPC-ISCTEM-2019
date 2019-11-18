@@ -347,6 +347,9 @@ class JavaParser(object):
                     while productions[j].lhs().symbol() != 'operador_comparacao':
                         j += 1
                     operador = productions[j].rhs()[0]
+                    if len(productions[j].rhs()) > 1:
+                        if operador != '=':
+                            operador += str(productions[j].rhs()[1])
                     while_condition += ' ' + operador
 
                     # Obter operando2
@@ -374,6 +377,9 @@ class JavaParser(object):
                     while productions[j].lhs().symbol() != 'operador_comparacao':
                         j += 1
                     operador = productions[j].rhs()[0]
+                    if len(productions[j].rhs()) > 1:
+                        if operador != '=':
+                            operador += str(productions[j].rhs()[1])
                     if_condition += ' ' + operador
 
                     # Obter operando2
