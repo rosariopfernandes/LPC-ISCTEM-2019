@@ -2,6 +2,7 @@ from models.class_declaration import ClassDeclaration
 from models.variable_assignment import VariableAssignment
 from models.method_call import MethodCall
 from models.structure_if import StructureIf
+from models.structure_while import StructureWhile
 
 JAVA_PASCAL_MAPPING = {
     'byte': 'integer',
@@ -66,7 +67,6 @@ def _append_assignments(indentation: int, method, lines, is_else=False):
             # Estructura if
             lines.append(_get_indentation(indentation) + 'if ( ' + assignment.condition + ' ) then')
             lines.append(_get_indentation(indentation) + 'begin')
-            # print(assignment.to_dict())
             _append_assignments(indentation + 3, assignment, lines)
             lines.append(_get_indentation(indentation) + 'end;')
             if len(assignment.else_assignments) > 0:
@@ -75,7 +75,12 @@ def _append_assignments(indentation: int, method, lines, is_else=False):
                 _append_assignments(indentation + 3, assignment, lines, True)
                 lines.append(_get_indentation(indentation) + 'end;')
             lines.append(_get_indentation(indentation))
-        # TODO: add structure while here
+        elif type(assignment) == StructureWhile:
+            lines.append(_get_indentation(indentation) + 'while ( ' + assignment.condition + ' ) do')
+            lines.append(_get_indentation(indentation) + 'begin')
+            _append_assignments(indentation + 3, assignment, lines)
+            lines.append(_get_indentation(indentation) + 'end;')
+            lines.append(_get_indentation(indentation))
 
 
 def get_pascal_equivalent(_java_class: ClassDeclaration):

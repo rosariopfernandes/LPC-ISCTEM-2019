@@ -9,6 +9,7 @@ from models.variable_assignment import VariableAssignment
 from models.variable_declaration import VariableDeclaration
 from models.method_call import MethodCall
 from models.structure_if import StructureIf
+from models.structure_while import StructureWhile
 
 
 class JavaParser(object):
@@ -53,23 +54,27 @@ class JavaParser(object):
         return variable_name
 
     def _append_assignment(self, _current_function_declaration, _current_procedure_declaration,
-                           _current_if_declaration, assignment, _is_else):
+                           _current_if_declaration, _current_while_declaration, assignment, _is_else):
         if _current_function_declaration is not None:
-            if _current_if_declaration is None:
+            if _current_if_declaration is not None:
+                if _is_else:
+                    _current_if_declaration.else_assignments.append(assignment)
+                else:
+                    _current_if_declaration.assignments.append(assignment)
+            elif _current_while_declaration is not None:
+                _current_while_declaration.assignments.append(assignment)
+            else:
                 _current_function_declaration.assignments.append(assignment)
-            else:
-                if _is_else:
-                    _current_if_declaration.else_assignments.append(assignment)
-                else:
-                    _current_if_declaration.assignments.append(assignment)
         if _current_procedure_declaration is not None:
-            if _current_if_declaration is None:
-                _current_procedure_declaration.assignments.append(assignment)
-            else:
+            if _current_if_declaration is not None:
                 if _is_else:
                     _current_if_declaration.else_assignments.append(assignment)
                 else:
                     _current_if_declaration.assignments.append(assignment)
+            elif _current_while_declaration is not None:
+                _current_while_declaration.assignments.append(assignment)
+            else:
+                _current_procedure_declaration.assignments.append(assignment)
 
     def get_class_declaration(self, parse_result, symbols: list, mapping: dict):
         _symbol_table_index = 0
@@ -80,8 +85,9 @@ class JavaParser(object):
         _java_class = ClassDeclaration()
         _current_procedure_declaration: ProcedureDeclaration = None
         _current_function_declaration: FunctionDeclaration = None
-        # TODO: Support nested ifs
+        # TODO: Support nested ifs and whiles
         _current_if_declaration: StructureIf = None
+        _current_while_declaration: StructureWhile = None
 
         # Verificar se existe alguma variável declarada 2 vezes
         for i in range(len(symbols)):
@@ -130,6 +136,12 @@ class JavaParser(object):
                             _current_if_declaration = None
                             _is_else = False
                             _if_was_added = False
+                    elif _current_while_declaration is not None:
+                        if _current_procedure_declaration is not None:
+                            _current_procedure_declaration.assignments.append(_current_while_declaration)
+                        if _current_function_declaration is not None:
+                            _current_function_declaration.assignments.append(_current_while_declaration)
+                        _current_while_declaration = None
                     else:
                         if _current_procedure_declaration is not None:
                             _java_class.procedure_declarations.append(_current_procedure_declaration)
@@ -227,7 +239,8 @@ class JavaParser(object):
                 if _argument_name != '':
                     _method_arguments.append(_argument_name)
                 self._append_assignment(_current_function_declaration, _current_procedure_declaration,
-                                        _current_if_declaration, MethodCall(method_name, _method_arguments), _is_else)
+                                        _current_if_declaration, _current_while_declaration,
+                                        MethodCall(method_name, _method_arguments), _is_else)
             if item.lhs().symbol() == 'atribuicao_variavel':
                 if len(productions[i + 1].rhs()) == 1:
                     # identificador de 1 letra
@@ -267,8 +280,8 @@ class JavaParser(object):
                     else:
                         variable_value = "'" + productions[j + 1].rhs()[0].symbol() + "'"
                 self._append_assignment(_current_function_declaration, _current_procedure_declaration,
-                                        _current_if_declaration, VariableAssignment(variable_name, variable_value),
-                                        _is_else)
+                                        _current_if_declaration, _current_while_declaration,
+                                        VariableAssignment(variable_name, variable_value), _is_else)
             if item.lhs().symbol() == 'lista_parametros':
                 # Verificar se tem parametros
                 if len(productions[i].rhs()) > 0:
@@ -276,8 +289,31 @@ class JavaParser(object):
                     parameter_name = symbols[_symbol_table_index].identifier
                     _symbol_table_index += 1
                     self._append_assignment(_current_function_declaration, _current_procedure_declaration,
-                                            _current_if_declaration, VariableDeclaration(mapping[parameter_data_type],
-                                                                                         parameter_name), _is_else)
+                                            _current_if_declaration, _current_while_declaration,
+                                            VariableDeclaration(mapping[parameter_data_type], parameter_name), _is_else)
+            if item.lhs().symbol() == 'estrutura_while':
+                if str(productions[i+1].rhs()[0]) == 'identificador':
+                    while_condition = self._parse_identifier(productions, i + 1)
+                elif str(productions[i+1].rhs()[0]) == 'constante_booleana':
+                    # Só colocou uma constante booleana
+                    while_condition = str(productions[i+2].rhs()[0])
+                else:
+                    # Colocou operando1 operador operando2
+                    # Obter operando1
+                    while_condition = self._parse_operand(productions, i)
+
+                    # Obter operador
+                    j = i+1
+                    while productions[j].lhs().symbol() != 'operador_comparacao':
+                        j += 1
+                    operador = productions[j].rhs()[0]
+                    while_condition += ' ' + operador
+
+                    # Obter operando2
+                    while_condition += ' ' + self._parse_operand(productions, j-1)
+
+                _current_while_declaration = StructureWhile()
+                _current_while_declaration.condition = str(while_condition)
             if item.lhs().symbol() == 'estrutura_if':
                 if len(item.rhs()) > 7:
                     _has_else = True
