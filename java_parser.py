@@ -17,7 +17,6 @@ class JavaParser(object):
     def _parse_operand(self, productions: list, i: int):
         operando = ''
         tipo_operando = str(productions[i + 2].rhs()[0])
-        print(tipo_operando)
         if tipo_operando == 'identificador':
             operando = self._parse_identifier(productions, i + 2)
         elif tipo_operando == 'constante_inteira':
@@ -213,9 +212,43 @@ class JavaParser(object):
                                                                         identificador_metodo)
             if item.lhs().symbol() == 'retorno':
                 if _current_function_declaration is not None:
-                    # TODO: Support return of values
-                    # TODO: Support return of identifiers with more than 1 letter
-                    _current_function_declaration.return_value = productions[i+3].rhs()[0]
+                    if str(item.rhs()[0]) == 'identificador':
+                        if len(productions[i + 1].rhs()) == 1:
+                            # identificador de 1 letra
+                            variable_name = productions[i + 3].rhs()[0]
+                        else:
+                            # identificador com mais de 1 letra
+                            # vamos formar o nome da variavel
+                            j = i + 3
+                            variable_name = ''
+                            while productions[j].lhs().symbol() == 'letra':
+                                lhs = productions[j].rhs()[0]
+                                variable_name += lhs
+                                j += 2
+                            j += 1
+                    elif str(productions[i + 1].rhs()[0]) == 'constante_inteira':
+                        variable_name = ''
+                        j = i + 3
+                        while productions[j].lhs().symbol() == 'digito':
+                            lhs = productions[j].rhs()[0]
+                            variable_name += lhs
+                            j += 2
+                    elif str(productions[i + 1].rhs()[0]) == 'constante_booleana':
+                        variable_name = productions[i + 3].rhs()[0]
+                    elif str(productions[i + 1].rhs()[0]) == 'constante_real':
+                        j = i + 3
+                        variable_name = ''
+                        while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
+                            if productions[j].lhs().symbol() != 'constante_inteira':
+                                lhs = str(productions[j].rhs()[0])
+                                variable_name += lhs
+                            j += 1
+                    elif str(productions[i + 1].rhs()[0]) == 'constante_caracter':
+                        if productions[i + 3].lhs().symbol() == 'caracter':
+                            variable_name = "'" + str(productions[i + 4].rhs()[0]) + "'"
+                        else:
+                            variable_name = "'" + productions[i + 3].rhs()[0].symbol() + "'"
+                    _current_function_declaration.return_value = variable_name
             if item.lhs().symbol() == 'chamada_metodo':
                 method_name = self._parse_identifier(productions, i)
                 _method_arguments = []
@@ -274,7 +307,6 @@ class JavaParser(object):
                             variable_value += lhs
                         j += 1
                 if productions[j].lhs().symbol() == 'constante_caracter':
-                    print('test ', productions[j + 1].lhs().symbol())
                     if productions[j + 1].lhs().symbol() == 'caracter':
                         variable_value = "'" + productions[j + 2].rhs()[0] + "'"
                     else:
