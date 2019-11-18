@@ -41,6 +41,7 @@ def get():
         if parse_result['code'] != -1:
             # TODO: Deal with the IndexError thrown here when the code cant be parsed by nltk
             java_tuple = JavaParser().get_class_declaration(parse_result['result'],
+                                                            _lexical_analysis.get_lexeme_table().get_lexemes(),
                                                             _lexical_analysis.get_symbol_table().get_identifiers(),
                                                             JAVA_PASCAL_MAPPING)
             java_class = java_tuple[0]

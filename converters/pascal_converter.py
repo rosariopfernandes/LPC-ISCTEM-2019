@@ -56,7 +56,7 @@ def _append_assignments(indentation: int, method, lines, is_else=False):
     if is_else:
         _assignments = method.else_assignments
     for assignment in _assignments:
-        print(assignment.to_dict())
+        # print(assignment.to_dict())
         if type(assignment) == VariableAssignment:
             # Atribuição de variáveis
             lines.append(_get_indentation(indentation) + assignment.variable_name + ' := ' + assignment.value + ';')
