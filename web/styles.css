@@ -165,6 +165,20 @@ html, body {
     height: 500px;
 }
 
+.myInlineDecoration {
+	color: red !important;
+	cursor: pointer;
+	text-decoration: underline;
+	font-weight: bold;
+	font-style: oblique;
+}
+
+.myLineDecoration {
+	background: red;
+	width: 5px !important;
+	margin-left: 3px;
+}
+
 /* TODO: Find a proper solution to have the graphs
  * not float around outside their container in IE10/11.
  * Using a browserhacks.com solution for now.

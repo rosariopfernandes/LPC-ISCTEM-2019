@@ -112,8 +112,10 @@ class JavaParser(object):
                     _java_class.class_name = symbols[_symbol_table_index].identifier
                     _symbol_table_index += 1
                 else:
-                    # TODO: Throw error
-                    print('Declaração de classe não encontrada')
+                    return None, {
+                        'code': -1,
+                        'message': 'Declaração de classe não encontrada'
+                    }
             # if item.lhs().symbol() == 'inicio_bloco':
             #     # _output_lines.append('begin')
             #     self.indentation = 3
@@ -174,8 +176,10 @@ class JavaParser(object):
                 if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_VARIABLE:
                     _symbol_table_index += 1
                 else:
-                    # TODO: Throw error
-                    print('Esperava declaração de variável')
+                    return None, {
+                        'code': -1,
+                        'message': 'Esperava declaração de variável'
+                    }
                 if len(item.rhs()) == 5:
                     # Declaração com atribuição
                     var_declaration = VariableDeclaration(var_data_type, var_name, var_value)
@@ -197,8 +201,10 @@ class JavaParser(object):
                     if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
                         _symbol_table_index += 1
                     else:
-                        # TODO: Throw error
-                        print('Esperava declaração de método')
+                        return None, {
+                            'code': -1,
+                            'message': 'Esperava declaração de método'
+                        }
                     # TODO: Support method arguments
                     _current_procedure_declaration = ProcedureDeclaration(identificador_metodo, [])
                 else:
@@ -206,8 +212,10 @@ class JavaParser(object):
                     if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
                         _symbol_table_index += 1
                     else:
-                        # TODO: Throw error
-                        print('Esperava declaração de método')
+                        return None, {
+                            'code': -1,
+                            'message': 'Esperava declaração de método'
+                        }
                     _current_function_declaration = FunctionDeclaration(mapping[productions[i + 1].rhs()[0]],
                                                                         identificador_metodo)
             if item.lhs().symbol() == 'retorno':

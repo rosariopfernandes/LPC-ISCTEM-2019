@@ -104,7 +104,8 @@ class AuxiliarTables(object):
                         return {
                             "code": -1,
                             "message": "Erro léxico: Token não esperado '" + self._word + "' na linha " +
-                                       str(line_number)
+                                       str(line_number),
+                            "line": self._current_line_number
                         }
                 elif word == 'true' or word == 'false':
                     # constante do tipo booleano
@@ -123,7 +124,8 @@ class AuxiliarTables(object):
                     return {
                         "code": -1,
                         "message": "Erro léxico: Token não esperado '" + self._word + "' na linha " +
-                                   str(line_number)
+                                   str(line_number),
+                        "line": self._current_line_number
                     }
         return {
             "code": 200
@@ -169,7 +171,8 @@ class AuxiliarTables(object):
                         response = {
                             "code": -1,
                             "message": "Erro léxico: Token não esperado '" + self._word + "' na linha " +
-                                       str(self._current_line_number)
+                                       str(self._current_line_number),
+                            "line": self._current_line_number
                         }
                     if response.get("code") == -1:
                         return response
