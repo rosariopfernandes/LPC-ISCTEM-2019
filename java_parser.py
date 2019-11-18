@@ -172,8 +172,10 @@ class JavaParser(object):
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
                 if _is_inside_method:
-                    self._append_assignment(_current_function_declaration, _current_procedure_declaration,
-                                            _current_if_declaration, var_declaration, _is_else)
+                    if _current_function_declaration is not None:
+                        _current_function_declaration.local_declarations.append(var_declaration)
+                    if _current_procedure_declaration is not None:
+                        _current_procedure_declaration.local_declarations.append(var_declaration)
                 else:
                     _java_class.variable_declarations.append(var_declaration)
             if item.lhs().symbol() == 'declaracao_metodo':

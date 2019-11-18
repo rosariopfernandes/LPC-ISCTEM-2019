@@ -1,6 +1,7 @@
 from models.class_declaration import ClassDeclaration
 from models.variable_assignment import VariableAssignment
 from models.method_call import MethodCall
+from models.structure_if import StructureIf
 
 JAVA_PASCAL_MAPPING = {
     'byte': 'integer',
@@ -61,7 +62,7 @@ def _append_assignments(indentation: int, method, lines, is_else=False):
         elif type(assignment) == MethodCall:
             # Chamada de métodos
             lines.append(_get_indentation(indentation) + assignment.method_name + '(' + _get_passed_arguments(assignment) + ');')
-        else:
+        elif type(assignment) == StructureIf:
             # Estructura if
             lines.append(_get_indentation(indentation) + 'if ( ' + assignment.condition + ' ) then')
             lines.append(_get_indentation(indentation) + 'begin')
