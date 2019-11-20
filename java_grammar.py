@@ -47,7 +47,7 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     condicao -> constante_booleana
     condicao -> operando operador_comparacao operando
     
-    operador_comparacao -> '>' | '<' | ">=" | "<="
+    operador_comparacao -> '>' | '<' | '>' '=' | '<' '=' | '=' '='
     operando -> identificador | constante_inteira | constante_real
 
     declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_fim_instrucao

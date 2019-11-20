@@ -64,9 +64,18 @@ function compileJavaCode() {
         .then(function (response) {
             if (response.code === -1) {
                 document.getElementById('tables-container').style.visibility = 'hidden';
-                // TODO: highlight line that contains an error
                 pascal_editor.setValue('{ ' + response.message + ' }');
+                if (response.line) {
+                    decorations = [];
+                    decorations[0] = { range: new monaco.Range(response.line,1,response.line,1), options: { isWholeLine: true, linesDecorationsClassName: 'myLineDecoration' }};
+                    if (response.startCol && response.endCol) {
+                        decorations[1] = { range: new monaco.Range(response.line,response.startCol,response.line,response.endCol), options: { inlineClassName: 'myInlineDecoration' }};
+                    }
+                    java_editor.deltaDecorations([], decorations);
+                }
             } else {
+                // Workaround para remover a linha de erro
+                java_editor.setValue(java_editor.getValue());
                 document.getElementById('tables-container').style.visibility = 'visible';
                 filename = response.java_class.class_name;
                 pascal_editor.setValue(response.result_lines.join('\n'));

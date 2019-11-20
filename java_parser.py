@@ -28,7 +28,7 @@ class JavaParser(object):
                 j += 2
         else:
             j = i + 4
-            while productions[j].lhs().symbol() != 'inicio_bloco' and\
+            while productions[j].lhs().symbol() != 'inicio_bloco' and \
                     productions[j].lhs().symbol() != 'operador_comparacao':
                 if productions[j].lhs().symbol() != 'constante_inteira':
                     lhs = str(productions[j].rhs()[0])
@@ -75,7 +75,7 @@ class JavaParser(object):
             else:
                 _current_procedure_declaration.assignments.append(assignment)
 
-    def get_class_declaration(self, parse_result, symbols: list, mapping: dict):
+    def get_class_declaration(self, parse_result, lexemes: list, symbols: list, mapping: dict):
         _symbol_table_index = 0
         _is_inside_method = False
         _is_else = False
@@ -112,8 +112,10 @@ class JavaParser(object):
                     _java_class.class_name = symbols[_symbol_table_index].identifier
                     _symbol_table_index += 1
                 else:
-                    # TODO: Throw error
-                    print('Declaração de classe não encontrada')
+                    return None, {
+                        'code': -1,
+                        'message': 'Declaração de classe não encontrada'
+                    }
             # if item.lhs().symbol() == 'inicio_bloco':
             #     # _output_lines.append('begin')
             #     self.indentation = 3
@@ -152,9 +154,18 @@ class JavaParser(object):
                 # self.indentation = 0
             if item.lhs().symbol() == 'declaracao_variavel':
                 var_name = symbols[_symbol_table_index].identifier
-                var_data_type = mapping[symbols[_symbol_table_index].data_type]
+                java_data_type = symbols[_symbol_table_index].data_type
+                var_data_type = mapping[java_data_type]
                 var_value = ''
                 j = i + 1
+
+                tipo_constante = productions[j].lhs().symbol()
+                l = j
+                while tipo_constante != 'valor':
+                    l += 1
+                    tipo_constante = productions[l].lhs().symbol()
+                tipo_constante = str(productions[l].rhs()[0])
+
                 # encontrar o valor da variavel
                 while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
                     if productions[j].lhs().symbol() == 'digito' or productions[j].lhs().symbol() == 'separador':
@@ -162,6 +173,20 @@ class JavaParser(object):
                         var_value += lhs
                     if productions[j].lhs().symbol() == 'constante_booleana':
                         var_value = productions[j].rhs()[0]
+                        if java_data_type != 'boolean':
+                            error_line = 0
+                            for k in range(len(lexemes)):
+                                if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                        lexemes[k + 2].token == var_value:
+                                    print(error_line)
+                                    error_line = lexemes[k].line
+                                    break
+                            return None, {
+                                'code': -1,
+                                'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                           ' não pode receber valor ' + var_value,
+                                'line': error_line
+                            }
                         break
                     if productions[j].lhs().symbol() == 'constante_caracter':
                         if productions[j + 1].lhs().symbol() == 'caracter':
@@ -169,13 +194,61 @@ class JavaParser(object):
                                 var_value = "'" + productions[j + 2].rhs()[0] + "'"
                             else:
                                 var_value = "'" + productions[j + 1].rhs()[0] + "'"
+                            if java_data_type != 'char':
+                                error_line = 0
+                                for k in range(len(lexemes)):
+                                    if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                            lexemes[k + 2].token == var_value:
+                                        print(error_line)
+                                        error_line = lexemes[k].line
+                                        break
+                                return None, {
+                                    'code': -1,
+                                    'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                               ' não pode receber valor ' + var_value,
+                                    'line': error_line
+                                }
                             break
                     j += 1
+                if tipo_constante == 'constante_inteira':
+                    if java_data_type != 'int' and java_data_type != 'short' and java_data_type != 'byte' \
+                            and java_data_type != 'long':
+                        error_line = 0
+                        for k in range(len(lexemes)):
+                            if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                    lexemes[k + 2].token == var_value:
+                                print(error_line)
+                                error_line = lexemes[k].line
+                                break
+                        return None, {
+                            'code': -1,
+                            'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                       ' não pode receber valor ' + var_value,
+                            'line': error_line
+                        }
+                else:
+                    if java_data_type != 'float' and java_data_type != 'double':
+                        error_line = 0
+                        for k in range(len(lexemes)):
+                            if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                    lexemes[k + 2].token == var_value:
+                                print(error_line)
+                                error_line = lexemes[k].line
+                                break
+                        return None, {
+                            'code': -1,
+                            'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                       ' não pode receber valor ' + var_value,
+                            'line': error_line
+                        }
+
                 if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_VARIABLE:
                     _symbol_table_index += 1
                 else:
-                    # TODO: Throw error
-                    print('Esperava declaração de variável')
+                    return None, {
+                        'code': -1,
+                        'message': 'Esperava declaração de variável'
+                    }
                 if len(item.rhs()) == 5:
                     # Declaração com atribuição
                     var_declaration = VariableDeclaration(var_data_type, var_name, var_value)
@@ -197,8 +270,10 @@ class JavaParser(object):
                     if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
                         _symbol_table_index += 1
                     else:
-                        # TODO: Throw error
-                        print('Esperava declaração de método')
+                        return None, {
+                            'code': -1,
+                            'message': 'Esperava declaração de método'
+                        }
                     # TODO: Support method arguments
                     _current_procedure_declaration = ProcedureDeclaration(identificador_metodo, [])
                 else:
@@ -206,8 +281,10 @@ class JavaParser(object):
                     if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
                         _symbol_table_index += 1
                     else:
-                        # TODO: Throw error
-                        print('Esperava declaração de método')
+                        return None, {
+                            'code': -1,
+                            'message': 'Esperava declaração de método'
+                        }
                     _current_function_declaration = FunctionDeclaration(mapping[productions[i + 1].rhs()[0]],
                                                                         identificador_metodo)
             if item.lhs().symbol() == 'retorno':
@@ -252,7 +329,7 @@ class JavaParser(object):
             if item.lhs().symbol() == 'chamada_metodo':
                 method_name = self._parse_identifier(productions, i)
                 _method_arguments = []
-                j = i+1
+                j = i + 1
                 # Ir à lista de argumentos
                 current_symbol = productions[j].lhs().symbol()
                 while current_symbol != 'lista_argumentos':
@@ -324,25 +401,28 @@ class JavaParser(object):
                                             _current_if_declaration, _current_while_declaration,
                                             VariableDeclaration(mapping[parameter_data_type], parameter_name), _is_else)
             if item.lhs().symbol() == 'estrutura_while':
-                if str(productions[i+1].rhs()[0]) == 'identificador':
+                if str(productions[i + 1].rhs()[0]) == 'identificador':
                     while_condition = self._parse_identifier(productions, i + 1)
-                elif str(productions[i+1].rhs()[0]) == 'constante_booleana':
+                elif str(productions[i + 1].rhs()[0]) == 'constante_booleana':
                     # Só colocou uma constante booleana
-                    while_condition = str(productions[i+2].rhs()[0])
+                    while_condition = str(productions[i + 2].rhs()[0])
                 else:
                     # Colocou operando1 operador operando2
                     # Obter operando1
                     while_condition = self._parse_operand(productions, i)
 
                     # Obter operador
-                    j = i+1
+                    j = i + 1
                     while productions[j].lhs().symbol() != 'operador_comparacao':
                         j += 1
                     operador = productions[j].rhs()[0]
+                    if len(productions[j].rhs()) > 1:
+                        if operador != '=':
+                            operador += str(productions[j].rhs()[1])
                     while_condition += ' ' + operador
 
                     # Obter operando2
-                    while_condition += ' ' + self._parse_operand(productions, j-1)
+                    while_condition += ' ' + self._parse_operand(productions, j - 1)
 
                 _current_while_declaration = StructureWhile()
                 _current_while_declaration.condition = str(while_condition)
@@ -351,25 +431,28 @@ class JavaParser(object):
                     _has_else = True
                 else:
                     _has_else = False
-                if str(productions[i+1].rhs()[0]) == 'identificador':
+                if str(productions[i + 1].rhs()[0]) == 'identificador':
                     if_condition = self._parse_identifier(productions, i + 1)
-                elif str(productions[i+1].rhs()[0]) == 'constante_booleana':
+                elif str(productions[i + 1].rhs()[0]) == 'constante_booleana':
                     # Só colocou uma constante booleana
-                    if_condition = str(productions[i+2].rhs()[0])
+                    if_condition = str(productions[i + 2].rhs()[0])
                 else:
                     # Colocou operando1 operador operando2
                     # Obter operando1
                     if_condition = self._parse_operand(productions, i)
 
                     # Obter operador
-                    j = i+1
+                    j = i + 1
                     while productions[j].lhs().symbol() != 'operador_comparacao':
                         j += 1
                     operador = productions[j].rhs()[0]
+                    if len(productions[j].rhs()) > 1:
+                        if operador != '=':
+                            operador += str(productions[j].rhs()[1])
                     if_condition += ' ' + operador
 
                     # Obter operando2
-                    if_condition += ' ' + self._parse_operand(productions, j-1)
+                    if_condition += ' ' + self._parse_operand(productions, j - 1)
 
                 _current_if_declaration = StructureIf()
                 _current_if_declaration.condition = str(if_condition)
