@@ -1,5 +1,6 @@
 import syntax_analysis
 import outputs
+import subprocess
 from flask import Flask, request
 from flask import jsonify
 from lexical_analysis import AuxiliarTables
@@ -12,13 +13,17 @@ app = Flask(__name__)
 
 @app.route("/", methods=['GET', 'POST'])
 def get():
+    out = subprocess.check_output(['java', '-jar', '/home/rosariopfernandes/RosarioScript.jar', 'public class Hello { int x; }'])
+    print(out)
     lines = request.json.split('\n')
+    # TODO: Send this request.json to Java without splitting.
     # print('lines=', lines)
 
     if len(lines) == 0:
         exit()
 
     _lexical_analysis = AuxiliarTables()
+    # TODO: Replace with Java lexical analysis
     response = _lexical_analysis.execute(lines)
     if response.get("code") == -1:
         return response
@@ -36,13 +41,13 @@ def get():
         # [x] Funções com retorno
         # [ ] Estruturas de controlo (if e while)
 
+        # Mantém-se. Executará depois das análises Java. Utilizará a tabela de lexemas do Java.
         parse_result = syntax_analysis.execute(_lexical_analysis.get_lexeme_table(), CONTEXT_FREE_GRAMMAR)
 
         if parse_result['code'] != -1:
             # TODO: Deal with the IndexError thrown here when the code cant be parsed by nltk
             java_tuple = JavaParser().get_class_declaration(parse_result['result'],
                                                             _lexical_analysis.get_lexeme_table().get_lexemes(),
-                                                            _lexical_analysis.get_symbol_table().get_identifiers(),
                                                             JAVA_PASCAL_MAPPING)
             java_class = java_tuple[0]
             # print(response)

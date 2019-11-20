@@ -75,8 +75,7 @@ class JavaParser(object):
             else:
                 _current_procedure_declaration.assignments.append(assignment)
 
-    def get_class_declaration(self, parse_result, lexemes: list, symbols: list, mapping: dict):
-        _symbol_table_index = 0
+    def get_class_declaration(self, parse_result, lexemes: list, mapping: dict):
         _is_inside_method = False
         _is_else = False
         _if_was_added = False
@@ -88,18 +87,18 @@ class JavaParser(object):
         _current_if_declaration: StructureIf = None
         _current_while_declaration: StructureWhile = None
 
-        # Verificar se existe alguma variável declarada 2 vezes
-        for i in range(len(symbols)):
-            symbol = symbols[i]
-            for j in range(len(symbols)):
-                if i == j:
-                    continue
-                another_symbol = symbols[j]
-                if symbol.identifier == another_symbol.identifier and another_symbol.level >= symbol.level:
-                    return None, {
-                        'code': -1,
-                        'message': 'Símbolo "' + symbol.identifier + '" já foi declarado.'
-                    }
+        # TODO Verificar se existe alguma variável declarada 2 vezes
+        # for i in range(len(symbols)):
+        #     symbol = symbols[i]
+        #     for j in range(len(symbols)):
+        #         if i == j:
+        #             continue
+        #         another_symbol = symbols[j]
+        #         if symbol.identifier == another_symbol.identifier and another_symbol.level >= symbol.level:
+        #             return None, {
+        #                 'code': -1,
+        #                 'message': 'Símbolo "' + symbol.identifier + '" já foi declarado.'
+        #             }
 
         tree: Tree = list(parse_result)[0]
         # tree.pretty_print()
@@ -108,17 +107,7 @@ class JavaParser(object):
             item: Production = productions[i]
             print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
-                if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_CLASS:
-                    _java_class.class_name = symbols[_symbol_table_index].identifier
-                    _symbol_table_index += 1
-                else:
-                    return None, {
-                        'code': -1,
-                        'message': 'Declaração de classe não encontrada'
-                    }
-            # if item.lhs().symbol() == 'inicio_bloco':
-            #     # _output_lines.append('begin')
-            #     self.indentation = 3
+                _java_class.class_name = self._parse_identifier(productions, i)
             if item.lhs().symbol() == 'fim_bloco':
                 if i != len(productions) - 1:
                     if _current_if_declaration is not None:
@@ -153,8 +142,8 @@ class JavaParser(object):
                         _is_inside_method = False
                 # self.indentation = 0
             if item.lhs().symbol() == 'declaracao_variavel':
-                var_name = symbols[_symbol_table_index].identifier
-                java_data_type = symbols[_symbol_table_index].data_type
+                var_name = self._parse_identifier(productions, i+1)
+                java_data_type = str(productions[i+1].rhs()[0])
                 var_data_type = mapping[java_data_type]
                 var_value = ''
                 j = i + 1
@@ -241,14 +230,6 @@ class JavaParser(object):
                                        ' não pode receber valor ' + var_value,
                             'line': error_line
                         }
-
-                if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_VARIABLE:
-                    _symbol_table_index += 1
-                else:
-                    return None, {
-                        'code': -1,
-                        'message': 'Esperava declaração de variável'
-                    }
                 if len(item.rhs()) == 5:
                     # Declaração com atribuição
                     var_declaration = VariableDeclaration(var_data_type, var_name, var_value)
@@ -264,27 +245,12 @@ class JavaParser(object):
                     _java_class.variable_declarations.append(var_declaration)
             if item.lhs().symbol() == 'declaracao_metodo':
                 _is_inside_method = True
+                identificador_metodo = self._parse_identifier(productions, i+1)
                 # Com retorno ou sem retorno?
                 if productions[i + 1].lhs().symbol() == 'tipo_dado_sem_retorno':
-                    identificador_metodo = symbols[_symbol_table_index].identifier
-                    if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
-                        _symbol_table_index += 1
-                    else:
-                        return None, {
-                            'code': -1,
-                            'message': 'Esperava declaração de método'
-                        }
                     # TODO: Support method arguments
                     _current_procedure_declaration = ProcedureDeclaration(identificador_metodo, [])
                 else:
-                    identificador_metodo = symbols[_symbol_table_index].identifier
-                    if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
-                        _symbol_table_index += 1
-                    else:
-                        return None, {
-                            'code': -1,
-                            'message': 'Esperava declaração de método'
-                        }
                     _current_function_declaration = FunctionDeclaration(mapping[productions[i + 1].rhs()[0]],
                                                                         identificador_metodo)
             if item.lhs().symbol() == 'retorno':
@@ -395,8 +361,7 @@ class JavaParser(object):
                 # Verificar se tem parametros
                 if len(productions[i].rhs()) > 0:
                     parameter_data_type = productions[i + 1].rhs()[0]
-                    parameter_name = symbols[_symbol_table_index].identifier
-                    _symbol_table_index += 1
+                    parameter_name = "param_test"  # TODO: symbols[_symbol_table_index].identifier
                     self._append_assignment(_current_function_declaration, _current_procedure_declaration,
                                             _current_if_declaration, _current_while_declaration,
                                             VariableDeclaration(mapping[parameter_data_type], parameter_name), _is_else)
