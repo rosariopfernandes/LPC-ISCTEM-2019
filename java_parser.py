@@ -107,7 +107,7 @@ class JavaParser(object):
             item: Production = productions[i]
             print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
-                _java_class.class_name = self._parse_identifier(productions, i)
+                _java_class.class_name = self._parse_identifier(productions, i+1)
             if item.lhs().symbol() == 'fim_bloco':
                 if i != len(productions) - 1:
                     if _current_if_declaration is not None:
@@ -142,48 +142,36 @@ class JavaParser(object):
                         _is_inside_method = False
                 # self.indentation = 0
             if item.lhs().symbol() == 'declaracao_variavel':
-                var_name = self._parse_identifier(productions, i+1)
-                java_data_type = str(productions[i+1].rhs()[0])
-                var_data_type = mapping[java_data_type]
-                var_value = ''
                 j = i + 1
 
-                tipo_constante = productions[j].lhs().symbol()
-                l = j
-                while tipo_constante != 'valor':
-                    l += 1
-                    tipo_constante = productions[l].lhs().symbol()
-                tipo_constante = str(productions[l].rhs()[0])
+                pos_attrib = 2
+                if str(item.rhs()[0]) == 'modificador':
+                    j += 1
+                    pos_attrib += 1
 
-                # encontrar o valor da variavel
-                while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
-                    if productions[j].lhs().symbol() == 'digito' or productions[j].lhs().symbol() == 'separador':
-                        lhs = productions[j].rhs()[0]
-                        var_value += lhs
-                    if productions[j].lhs().symbol() == 'constante_booleana':
-                        var_value = productions[j].rhs()[0]
-                        if java_data_type != 'boolean':
-                            error_line = 0
-                            for k in range(len(lexemes)):
-                                if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
-                                        lexemes[k + 2].token == var_value:
-                                    print(error_line)
-                                    error_line = lexemes[k].line
-                                    break
-                            return None, {
-                                'code': -1,
-                                'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
-                                           ' não pode receber valor ' + var_value,
-                                'line': error_line
-                            }
-                        break
-                    if productions[j].lhs().symbol() == 'constante_caracter':
-                        if productions[j + 1].lhs().symbol() == 'caracter':
-                            if type(productions[j + 1].rhs()[0]) == Nonterminal:
-                                var_value = "'" + productions[j + 2].rhs()[0] + "'"
-                            else:
-                                var_value = "'" + productions[j + 1].rhs()[0] + "'"
-                            if java_data_type != 'char':
+                var_name = self._parse_identifier(productions, j)
+                java_data_type = str(productions[j].rhs()[0])
+                var_data_type = mapping[java_data_type]
+                var_value = ''
+
+                if str(item.rhs()[pos_attrib]) == 'simbolo_atribuicao':
+                    print('tem atribuição')
+                    tipo_constante = productions[j].lhs().symbol()
+                    l = j
+                    while tipo_constante != 'valor':
+                        print(tipo_constante)
+                        l += 1
+                        tipo_constante = productions[l].lhs().symbol()
+                    tipo_constante = str(productions[l].rhs()[0])
+
+                    # encontrar o valor da variavel
+                    while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
+                        if productions[j].lhs().symbol() == 'digito' or productions[j].lhs().symbol() == 'separador':
+                            lhs = productions[j].rhs()[0]
+                            var_value += lhs
+                        if productions[j].lhs().symbol() == 'constante_booleana':
+                            var_value = productions[j].rhs()[0]
+                            if java_data_type != 'boolean':
                                 error_line = 0
                                 for k in range(len(lexemes)):
                                     if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
@@ -198,42 +186,63 @@ class JavaParser(object):
                                     'line': error_line
                                 }
                             break
-                    j += 1
-                if tipo_constante == 'constante_inteira':
-                    if java_data_type != 'int' and java_data_type != 'short' and java_data_type != 'byte' \
-                            and java_data_type != 'long':
-                        error_line = 0
-                        for k in range(len(lexemes)):
-                            if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
-                                    lexemes[k + 2].token == var_value:
-                                print(error_line)
-                                error_line = lexemes[k].line
+                        if productions[j].lhs().symbol() == 'constante_caracter':
+                            if productions[j + 1].lhs().symbol() == 'caracter':
+                                if type(productions[j + 1].rhs()[0]) == Nonterminal:
+                                    var_value = "'" + productions[j + 2].rhs()[0] + "'"
+                                else:
+                                    var_value = "'" + productions[j + 1].rhs()[0] + "'"
+                                if java_data_type != 'char':
+                                    error_line = 0
+                                    for k in range(len(lexemes)):
+                                        if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                                lexemes[k + 2].token == var_value:
+                                            print(error_line)
+                                            error_line = lexemes[k].line
+                                            break
+                                    return None, {
+                                        'code': -1,
+                                        'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                                   ' não pode receber valor ' + var_value,
+                                        'line': error_line
+                                    }
                                 break
-                        return None, {
-                            'code': -1,
-                            'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
-                                       ' não pode receber valor ' + var_value,
-                            'line': error_line
-                        }
-                else:
-                    if java_data_type != 'float' and java_data_type != 'double':
-                        error_line = 0
-                        for k in range(len(lexemes)):
-                            if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
-                                    lexemes[k + 2].token == var_value:
-                                print(error_line)
-                                error_line = lexemes[k].line
-                                break
-                        return None, {
-                            'code': -1,
-                            'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
-                                       ' não pode receber valor ' + var_value,
-                            'line': error_line
-                        }
-                if len(item.rhs()) == 5:
+                        j += 1
+                    if tipo_constante == 'constante_inteira':
+                        if java_data_type != 'int' and java_data_type != 'short' and java_data_type != 'byte' \
+                                and java_data_type != 'long':
+                            error_line = 0
+                            for k in range(len(lexemes)):
+                                if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                        lexemes[k + 2].token == var_value:
+                                    print(error_line)
+                                    error_line = lexemes[k].line
+                                    break
+                            return None, {
+                                'code': -1,
+                                'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                           ' não pode receber valor ' + var_value,
+                                'line': error_line
+                            }
+                    else:
+                        if java_data_type != 'float' and java_data_type != 'double':
+                            error_line = 0
+                            for k in range(len(lexemes)):
+                                if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                        lexemes[k + 2].token == var_value:
+                                    print(error_line)
+                                    error_line = lexemes[k].line
+                                    break
+                            return None, {
+                                'code': -1,
+                                'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                           ' não pode receber valor ' + var_value,
+                                'line': error_line
+                            }
                     # Declaração com atribuição
                     var_declaration = VariableDeclaration(var_data_type, var_name, var_value)
                 else:
+                    print('Não tem atribuição')
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
                 if _is_inside_method:
@@ -245,13 +254,17 @@ class JavaParser(object):
                     _java_class.variable_declarations.append(var_declaration)
             if item.lhs().symbol() == 'declaracao_metodo':
                 _is_inside_method = True
-                identificador_metodo = self._parse_identifier(productions, i+1)
+                j = i + 1
+                # Verificar se tem modificador de visibilidade
+                if len(item.rhs()) > 8:
+                    j += 1
+                identificador_metodo = self._parse_identifier(productions, j)
                 # Com retorno ou sem retorno?
-                if productions[i + 1].lhs().symbol() == 'tipo_dado_sem_retorno':
+                if productions[j].lhs().symbol() == 'tipo_dado_sem_retorno':
                     # TODO: Support method arguments
                     _current_procedure_declaration = ProcedureDeclaration(identificador_metodo, [])
                 else:
-                    _current_function_declaration = FunctionDeclaration(mapping[productions[i + 1].rhs()[0]],
+                    _current_function_declaration = FunctionDeclaration(mapping[productions[j].rhs()[0]],
                                                                         identificador_metodo)
             if item.lhs().symbol() == 'retorno':
                 if _current_function_declaration is not None:

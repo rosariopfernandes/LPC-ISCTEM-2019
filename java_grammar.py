@@ -12,7 +12,7 @@ SYMBOLS = ['+', '-', '=', '{', '}', '[', ']', '<', '>']
 
 CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     """
-    declaracao_classe -> "public" "class" identificador inicio_bloco corpo_classe fim_bloco
+    declaracao_classe -> modificador "class" identificador inicio_bloco corpo_classe fim_bloco
 
     corpo_classe -> declaracao_variavel
     corpo_classe -> declaracao_metodo
@@ -21,6 +21,8 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
 
     declaracao_metodo -> tipo_dado_sem_retorno identificador '(' lista_parametros ')' inicio_bloco corpo_metodo fim_bloco
     declaracao_metodo -> tipo_dado_com_retorno identificador '(' lista_parametros ')' inicio_bloco corpo_metodo "return" retorno simbolo_fim_instrucao fim_bloco
+    declaracao_metodo -> modificador tipo_dado_sem_retorno identificador '(' lista_parametros ')' inicio_bloco corpo_metodo fim_bloco
+    declaracao_metodo -> modificador tipo_dado_com_retorno identificador '(' lista_parametros ')' inicio_bloco corpo_metodo "return" retorno simbolo_fim_instrucao fim_bloco
     retorno -> identificador | valor
     
     lista_parametros ->
@@ -50,8 +52,10 @@ CONTEXT_FREE_GRAMMAR = CFG.fromstring(
     operador_comparacao -> '>' | '<' | '>' '=' | '<' '=' | '=' '='
     operando -> identificador | constante_inteira | constante_real
 
-    declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_fim_instrucao
-    declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_fim_instrucao | modificador tipo_dado_com_retorno identificador simbolo_fim_instrucao
+    declaracao_variavel -> tipo_dado_com_retorno identificador simbolo_atribuicao valor simbolo_fim_instrucao | modificador tipo_dado_com_retorno identificador simbolo_atribuicao valor simbolo_fim_instrucao
+    
+    modificador -> "public" | "private" | "protected"
 
     atribuicao_variavel -> identificador simbolo_atribuicao valor simbolo_fim_instrucao
     atribuicao_variavel -> identificador simbolo_atribuicao chamada_metodo simbolo_fim_instrucao
