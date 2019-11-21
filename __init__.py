@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 @app.route("/", methods=['GET', 'POST'])
 def get():
-    out = subprocess.check_output(['java', '-jar', 'RosarioScript.jar', request.json])
+    out = subprocess.check_output(['java', '-jar', 'AnalisadorJava.jar', request.json])
     response = json.loads(out)
 
     if response.get("code") == -1:
@@ -31,8 +31,6 @@ def get():
                 java_tuple = SemanticAnalysis().get_class_declaration(parse_result['result'], lexemes_list,
                                                                       JAVA_PASCAL_MAPPING)
                 java_class = java_tuple[0]
-                # print(response)
-                # print(java_tuple)
                 if java_class is None:
                     response = java_tuple[1]
                     res = jsonify(response)

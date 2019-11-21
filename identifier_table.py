@@ -85,7 +85,7 @@ class IdentifierTable(object):
 
     def has_been_declared(self, identifier: str, level: float):
         for identificador in self._identifiers:
-            if identificador.identifier == identifier and float(identificador.level) == level:
+            if identificador.identifier == identifier and float(identificador.level) <= level:
                 return True
         return False
 

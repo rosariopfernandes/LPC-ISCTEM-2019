@@ -90,19 +90,6 @@ class SemanticAnalysis(object):
 
         _symbol_table = IdentifierTable()
 
-        # TODO Verificar se existe alguma variável declarada 2 vezes
-        # for i in range(len(symbols)):
-        #     symbol = symbols[i]
-        #     for j in range(len(symbols)):
-        #         if i == j:
-        #             continue
-        #         another_symbol = symbols[j]
-        #         if symbol.identifier == another_symbol.identifier and another_symbol.level >= symbol.level:
-        #             return None, {
-        #                 'code': -1,
-        #                 'message': 'Símbolo "' + symbol.identifier + '" já foi declarado.'
-        #             }
-
         tree: Tree = list(parse_result)[0]
         # tree.pretty_print()
         productions = list(tree.productions())
@@ -218,7 +205,7 @@ class SemanticAnalysis(object):
                                     'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
                                                ' não pode receber valor ' + var_value,
                                     'line': error_line
-                                }
+                                }, _symbol_table.to_dict()
                             break
                         if productions[j].lhs().symbol() == 'constante_caracter':
                             if productions[j + 1].lhs().symbol() == 'caracter':
@@ -238,7 +225,7 @@ class SemanticAnalysis(object):
                                         'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
                                                    ' não pode receber valor ' + var_value,
                                         'line': error_line
-                                    }
+                                    }, _symbol_table.to_dict()
                                 break
                         j += 1
                     if tipo_constante == 'constante_inteira':
@@ -256,7 +243,7 @@ class SemanticAnalysis(object):
                                 'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
                                            ' não pode receber valor ' + var_value,
                                 'line': error_line
-                            }
+                            }, _symbol_table.to_dict()
                     elif tipo_constante == 'constante_real':
                         if java_data_type != 'float' and java_data_type != 'double':
                             error_line = 0
@@ -277,7 +264,7 @@ class SemanticAnalysis(object):
                     if _symbol_table.has_been_declared(var_name, _level):
                         return None, {
                             'code': -1,
-                            'message': 'Símbolo ' + var_name + ' já foi declarado.'
+                            'message': 'Símbolo "' + var_name + '" já foi declarado.'
                         }, _symbol_table.to_dict()
                     _symbol_table.add_variable(var_name, java_data_type, var_value, 'ref', _level)
                 else:
@@ -286,7 +273,7 @@ class SemanticAnalysis(object):
                     if _symbol_table.has_been_declared(var_name, _level):
                         return None, {
                             'code': -1,
-                            'message': 'Símbolo ' + var_name + ' já foi declarado.'
+                            'message': 'Símbolo "' + var_name + '" já foi declarado.'
                         }, _symbol_table.to_dict()
                     _symbol_table.add_variable(var_name, java_data_type, '-', 'ref', _level)
                 if _is_inside_method:
@@ -390,6 +377,11 @@ class SemanticAnalysis(object):
                         variable_name += lhs
                         j += 2
                     j += 1
+                if not _symbol_table.has_been_declared(variable_name, _level):
+                    return None, {
+                        'code': -1,
+                        'message': 'Variável ' + variable_name + ' não foi declarada.'
+                    }, _symbol_table.to_dict()
                 variable_value = ''
                 if productions[j].lhs().symbol() == 'constante_inteira':
                     variable_value = ''
