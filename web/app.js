@@ -60,11 +60,12 @@ function compileJavaCode() {
             // "Content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             Accept: 'application/json',
         }})
-        .then(res => res.json())
+        .then(res => {console.log(res); res.json()})
         .then(function (response) {
             if (response.code === -1) {
                 document.getElementById('tables-container').style.visibility = 'hidden';
                 pascal_editor.setValue('{ ' + response.message + ' }');
+                // TODO: Adicionar uma caixa de erro
                 if (response.line) {
                     decorations = [];
                     decorations[0] = { range: new monaco.Range(response.line,1,response.line,1), options: { isWholeLine: true, linesDecorationsClassName: 'myLineDecoration' }};
@@ -82,7 +83,7 @@ function compileJavaCode() {
                 let table_lexemes = document.getElementById('table_lexemes');
                 let table_symbols = document.getElementById('table_symbols');
                 let lexemes = response.lexemes;
-                let symbols = response.symbols;
+                // let symbols = response.symbols;
                 let content = "";
                 table_lexemes.innerHTML = "";
                 lexemes.forEach(function (lexeme) {
@@ -93,7 +94,7 @@ function compileJavaCode() {
                 table_lexemes.innerHTML = content;
 
                 content = "";
-                symbols.forEach(function (symbol) {
+                /*symbols.forEach(function (symbol) {
                     content += '<tr>' +
                         '<td class="mdl-data-table__cell--non-numeric">' + symbol.identifier + '</td>\n' +
                         '<td class="mdl-data-table__cell--non-numeric">' + symbol.category + '</td>\n' +
@@ -107,7 +108,7 @@ function compileJavaCode() {
                         '<td>' + symbol.level + '</td>\n' +
                         '</tr>'
                 });
-                table_symbols.innerHTML = content;
+                table_symbols.innerHTML = content;*/
             }
         })
         .catch(function (error) {
