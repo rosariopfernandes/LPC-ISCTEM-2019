@@ -257,7 +257,7 @@ class SemanticAnalysis(object):
                                            ' não pode receber valor ' + var_value,
                                 'line': error_line
                             }
-                    else:
+                    elif tipo_constante == 'constante_real':
                         if java_data_type != 'float' and java_data_type != 'double':
                             error_line = 0
                             for k in range(len(lexemes)):
@@ -279,7 +279,7 @@ class SemanticAnalysis(object):
                             'code': -1,
                             'message': 'Símbolo ' + var_name + ' já foi declarado.'
                         }, _symbol_table.to_dict()
-                    _symbol_table.add_variable(var_name, var_data_type, var_value, 'ref', _level)
+                    _symbol_table.add_variable(var_name, java_data_type, var_value, 'ref', _level)
                 else:
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
@@ -288,7 +288,7 @@ class SemanticAnalysis(object):
                             'code': -1,
                             'message': 'Símbolo ' + var_name + ' já foi declarado.'
                         }, _symbol_table.to_dict()
-                    _symbol_table.add_variable(var_name, var_data_type, '-', 'ref', _level)
+                    _symbol_table.add_variable(var_name, java_data_type, '-', 'ref', _level)
                 if _is_inside_method:
                     if _current_function_declaration is not None:
                         _current_function_declaration.local_declarations.append(var_declaration)
