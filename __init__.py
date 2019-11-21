@@ -32,6 +32,7 @@ def get():
                                                                 JAVA_PASCAL_MAPPING)
                 java_class = java_tuple[0]
                 # print(response)
+                # print(java_tuple)
                 if java_class is None:
                     response = java_tuple[1]
                     res = jsonify(response)
@@ -41,7 +42,8 @@ def get():
                     response['java_class'] = java_tuple[1]
                     pascal_lines = get_pascal_equivalent(java_class)
                     response['result_lines'] = pascal_lines
-                    # print(response)
+                    response['symbols'] = java_tuple[2]
+                    response['code'] = 200
                     res = jsonify(response)
                     res.headers.add('Access-Control-Allow-Origin', '*')
                     return res

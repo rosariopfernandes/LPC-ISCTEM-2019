@@ -80,12 +80,15 @@ class JavaParser(object):
         _is_else = False
         _if_was_added = False
         _has_else = False
+        _level = 0.0
         _java_class = ClassDeclaration()
         _current_procedure_declaration: ProcedureDeclaration = None
         _current_function_declaration: FunctionDeclaration = None
         # TODO: Support nested ifs and whiles
         _current_if_declaration: StructureIf = None
         _current_while_declaration: StructureWhile = None
+
+        _symbol_table = IdentifierTable()
 
         # TODO Verificar se existe alguma variável declarada 2 vezes
         # for i in range(len(symbols)):
@@ -107,7 +110,9 @@ class JavaParser(object):
             item: Production = productions[i]
             print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
-                _java_class.class_name = self._parse_identifier(productions, i+1)
+                nome_class = self._parse_identifier(productions, i+1)
+                _java_class.class_name = nome_class
+                _symbol_table.add_class(nome_class, _level)
             if item.lhs().symbol() == 'fim_bloco':
                 if i != len(productions) - 1:
                     if _current_if_declaration is not None:
@@ -133,7 +138,19 @@ class JavaParser(object):
                             _current_function_declaration.assignments.append(_current_while_declaration)
                         _current_while_declaration = None
                     else:
+                        _level -= 0.1
                         if _current_procedure_declaration is not None:
+                            # identifier: str, data_type: str, parameter_count: int, parameter_sequence: str,
+                            #                    reference: str, level: float):
+                            _param_count = 0
+                            _param_seq = '-'
+                            for param in _current_procedure_declaration.arguments:
+                                _param_seq += param + ', '
+                                _param_count += 1
+                            if _param_seq != '-':
+                                _param_seq = _param_seq[:-2]
+                            _symbol_table.add_method(_current_procedure_declaration.procedure_name,
+                                                     'void', _param_count, _param_seq, 'refMethod', _level)
                             _java_class.procedure_declarations.append(_current_procedure_declaration)
                             _current_procedure_declaration = None
                         if _current_function_declaration is not None:
@@ -155,11 +172,9 @@ class JavaParser(object):
                 var_value = ''
 
                 if str(item.rhs()[pos_attrib]) == 'simbolo_atribuicao':
-                    print('tem atribuição')
                     tipo_constante = productions[j].lhs().symbol()
                     l = j
                     while tipo_constante != 'valor':
-                        print(tipo_constante)
                         l += 1
                         tipo_constante = productions[l].lhs().symbol()
                     tipo_constante = str(productions[l].rhs()[0])
@@ -176,7 +191,6 @@ class JavaParser(object):
                                 for k in range(len(lexemes)):
                                     if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
                                             lexemes[k + 2].token == var_value:
-                                        print(error_line)
                                         error_line = lexemes[k].line
                                         break
                                 return None, {
@@ -197,7 +211,6 @@ class JavaParser(object):
                                     for k in range(len(lexemes)):
                                         if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
                                                 lexemes[k + 2].token == var_value:
-                                            print(error_line)
                                             error_line = lexemes[k].line
                                             break
                                     return None, {
@@ -241,10 +254,11 @@ class JavaParser(object):
                             }
                     # Declaração com atribuição
                     var_declaration = VariableDeclaration(var_data_type, var_name, var_value)
+                    _symbol_table.add_variable(var_name, var_data_type, var_value, 'ref', _level)
                 else:
-                    print('Não tem atribuição')
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
+                    _symbol_table.add_variable(var_name, var_data_type, '-', 'ref', _level)
                 if _is_inside_method:
                     if _current_function_declaration is not None:
                         _current_function_declaration.local_declarations.append(var_declaration)
@@ -254,6 +268,7 @@ class JavaParser(object):
                     _java_class.variable_declarations.append(var_declaration)
             if item.lhs().symbol() == 'declaracao_metodo':
                 _is_inside_method = True
+                _level += 0.1
                 j = i + 1
                 # Verificar se tem modificador de visibilidade
                 if len(item.rhs()) > 8:
@@ -372,9 +387,12 @@ class JavaParser(object):
                                         VariableAssignment(variable_name, variable_value), _is_else)
             if item.lhs().symbol() == 'lista_parametros':
                 # Verificar se tem parametros
+                # TODO: Check if this really works
                 if len(productions[i].rhs()) > 0:
                     parameter_data_type = productions[i + 1].rhs()[0]
-                    parameter_name = "param_test"  # TODO: symbols[_symbol_table_index].identifier
+                    parameter_name = self._parse_identifier(productions, i + 1)
+                    # TODO: Add parameter after method
+                    _symbol_table.add_parameter(parameter_name, parameter_data_type, '-', 'r', _level)
                     self._append_assignment(_current_function_declaration, _current_procedure_declaration,
                                             _current_if_declaration, _current_while_declaration,
                                             VariableDeclaration(mapping[parameter_data_type], parameter_name), _is_else)
@@ -437,4 +455,4 @@ class JavaParser(object):
             if item.lhs().symbol() == 'estrutura_else':
                 _is_else = True
 
-        return _java_class, _java_class.to_dict()
+        return _java_class, _java_class.to_dict(), _symbol_table.to_dict()

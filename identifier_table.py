@@ -94,3 +94,9 @@ class IdentifierTable(object):
 
     def update_value(self, index: int, new_value: str):
         self._identifiers[index].value = new_value
+
+    def to_dict(self):
+        _dic_list = []
+        for symbol in self._identifiers:
+            _dic_list.append(symbol.to_dict())
+        return _dic_list
