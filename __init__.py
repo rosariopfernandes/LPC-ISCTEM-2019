@@ -5,7 +5,7 @@ import json
 from flask import Flask, request
 from flask import jsonify
 from lexeme_table import Lexema
-from java_parser import JavaParser
+from semantic_analysis import SemanticAnalysis
 from java_grammar import CONTEXT_FREE_GRAMMAR
 from converters.pascal_converter import get_pascal_equivalent, JAVA_PASCAL_MAPPING
 
@@ -28,8 +28,8 @@ def get():
         parse_result = syntax_analysis.execute(lexemes_list, CONTEXT_FREE_GRAMMAR)
         if parse_result['code'] != -1:
             try:
-                java_tuple = JavaParser().get_class_declaration(parse_result['result'], lexemes_list,
-                                                                JAVA_PASCAL_MAPPING)
+                java_tuple = SemanticAnalysis().get_class_declaration(parse_result['result'], lexemes_list,
+                                                                      JAVA_PASCAL_MAPPING)
                 java_class = java_tuple[0]
                 # print(response)
                 # print(java_tuple)

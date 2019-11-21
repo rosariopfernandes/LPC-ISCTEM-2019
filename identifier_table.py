@@ -83,6 +83,12 @@ class IdentifierTable(object):
                 return True
         return False
 
+    def has_been_declared(self, identifier: str, level: float):
+        for identificador in self._identifiers:
+            if identificador.identifier == identifier and float(identificador.level) == level:
+                return True
+        return False
+
     def get_identifiers(self):
         return self._identifiers
 

@@ -12,7 +12,7 @@ from models.structure_if import StructureIf
 from models.structure_while import StructureWhile
 
 
-class JavaParser(object):
+class SemanticAnalysis(object):
 
     def _parse_operand(self, productions: list, i: int):
         operando = ''
@@ -140,8 +140,6 @@ class JavaParser(object):
                     else:
                         _level -= 0.1
                         if _current_procedure_declaration is not None:
-                            # identifier: str, data_type: str, parameter_count: int, parameter_sequence: str,
-                            #                    reference: str, level: float):
                             _param_count = 0
                             _param_seq = '-'
                             for param in _current_procedure_declaration.arguments:
@@ -149,11 +147,33 @@ class JavaParser(object):
                                 _param_count += 1
                             if _param_seq != '-':
                                 _param_seq = _param_seq[:-2]
+                            method_name = _current_procedure_declaration.procedure_name
+                            if _symbol_table.has_been_declared(method_name, _level):
+                                return None, {
+                                    'code': -1,
+                                    'message': 'Símbolo ' + method_name + ' já foi declarado.'
+                                }, _symbol_table.to_dict()
                             _symbol_table.add_method(_current_procedure_declaration.procedure_name,
                                                      'void', _param_count, _param_seq, 'refMethod', _level)
                             _java_class.procedure_declarations.append(_current_procedure_declaration)
                             _current_procedure_declaration = None
                         if _current_function_declaration is not None:
+                            _param_count = 0
+                            _param_seq = '-'
+                            for param in _current_function_declaration.arguments:
+                                _param_seq += param + ', '
+                                _param_count += 1
+                            if _param_seq != '-':
+                                _param_seq = _param_seq[:-2]
+                            method_name = _current_function_declaration.function_name
+                            if _symbol_table.has_been_declared(method_name, _level):
+                                return None, {
+                                    'code': -1,
+                                    'message': 'Símbolo ' + method_name + ' já foi declarado.'
+                                }, _symbol_table.to_dict()
+                            _symbol_table.add_method(_current_function_declaration.function_name,
+                                                     _current_function_declaration.data_type,
+                                                     _param_count, _param_seq, 'refMethod', _level)
                             _java_class.function_declarations.append(_current_function_declaration)
                             _current_function_declaration = None
                         _is_inside_method = False
@@ -251,13 +271,23 @@ class JavaParser(object):
                                 'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
                                            ' não pode receber valor ' + var_value,
                                 'line': error_line
-                            }
+                            }, _symbol_table.to_dict()
                     # Declaração com atribuição
                     var_declaration = VariableDeclaration(var_data_type, var_name, var_value)
+                    if _symbol_table.has_been_declared(var_name, _level):
+                        return None, {
+                            'code': -1,
+                            'message': 'Símbolo ' + var_name + ' já foi declarado.'
+                        }, _symbol_table.to_dict()
                     _symbol_table.add_variable(var_name, var_data_type, var_value, 'ref', _level)
                 else:
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
+                    if _symbol_table.has_been_declared(var_name, _level):
+                        return None, {
+                            'code': -1,
+                            'message': 'Símbolo ' + var_name + ' já foi declarado.'
+                        }, _symbol_table.to_dict()
                     _symbol_table.add_variable(var_name, var_data_type, '-', 'ref', _level)
                 if _is_inside_method:
                     if _current_function_declaration is not None:
