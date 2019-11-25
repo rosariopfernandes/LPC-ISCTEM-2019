@@ -36,7 +36,16 @@ require(['vs/editor/editor.main'], function() {
     });
 
     pascal_editor = monaco.editor.create(document.getElementById('destination-container'), {
-        value: '{ O código Pascal aparecerá aqui }',
+        value: [
+            '{\n',
+            '  Bem-vindo ao Pré-Processador Java-Pascal\n\n',
+            '  Introduza o código Java na área à esquerda (Código-Fonte)\n',
+            '  e clique em "Executar".\n',
+            '  O resultado será mostrado nesta aba (Resultado).\n\n',
+            '  Utilize a opção "Carregar Ficheiro" para ler um\n',
+            '  ficheiro do seu computador.',
+            '\n}'
+        ].join('\n'),
         language: 'pascal',
         scrollBeyondLastLine: false,
         readOnly: true,

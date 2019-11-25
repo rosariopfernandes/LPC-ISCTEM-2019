@@ -5,6 +5,7 @@ public class Mazamera {
     public void main() {
         sofreu = true;
         vezes_que_sofreu = 3;
+        guiguigui();
     }
 
     private void dizerGui() {
@@ -13,9 +14,13 @@ public class Mazamera {
 
     private void guiguigui() {
         int i;
+        boolean estaoAFugir;
         i = 0;
         while (i < vezes_que_sofreu) {
-            // dizerGui();
+            dizerGui();
+        }
+        if (i == 3) {
+            estaoAFugir = true;
         }
     }
 }

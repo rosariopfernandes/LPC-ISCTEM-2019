@@ -91,7 +91,7 @@ class SemanticAnalysis(object):
         _symbol_table = IdentifierTable()
 
         tree: Tree = list(parse_result)[0]
-        # tree.pretty_print()
+        # tree.draw()
         productions = list(tree.productions())
         for i in range(len(productions)):
             item: Production = productions[i]
@@ -287,16 +287,18 @@ class SemanticAnalysis(object):
                 _is_inside_method = True
                 _level += 0.1
                 j = i + 1
+                pos_attrib = 0
                 # Verificar se tem modificador de visibilidade
-                if len(item.rhs()) > 8:
+                if str(item.rhs()[0]) == 'modificador':
                     j += 1
+                    pos_attrib += 2
                 identificador_metodo = self._parse_identifier(productions, j)
                 # Com retorno ou sem retorno?
                 if productions[j].lhs().symbol() == 'tipo_dado_sem_retorno':
                     # TODO: Support method arguments
                     _current_procedure_declaration = ProcedureDeclaration(identificador_metodo, [])
                 else:
-                    _current_function_declaration = FunctionDeclaration(mapping[productions[j].rhs()[0]],
+                    _current_function_declaration = FunctionDeclaration(mapping[str(productions[j].rhs()[pos_attrib])],
                                                                         identificador_metodo)
             if item.lhs().symbol() == 'retorno':
                 if _current_function_declaration is not None:
