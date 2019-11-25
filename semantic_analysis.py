@@ -12,7 +12,7 @@ from models.structure_if import StructureIf
 from models.structure_while import StructureWhile
 
 
-class JavaParser(object):
+class SemanticAnalysis(object):
 
     def _parse_operand(self, productions: list, i: int):
         operando = ''
@@ -75,12 +75,12 @@ class JavaParser(object):
             else:
                 _current_procedure_declaration.assignments.append(assignment)
 
-    def get_class_declaration(self, parse_result, lexemes: list, symbols: list, mapping: dict):
-        _symbol_table_index = 0
+    def get_class_declaration(self, parse_result, lexemes: list, mapping: dict):
         _is_inside_method = False
         _is_else = False
         _if_was_added = False
         _has_else = False
+        _level = 0.0
         _java_class = ClassDeclaration()
         _current_procedure_declaration: ProcedureDeclaration = None
         _current_function_declaration: FunctionDeclaration = None
@@ -88,37 +88,18 @@ class JavaParser(object):
         _current_if_declaration: StructureIf = None
         _current_while_declaration: StructureWhile = None
 
-        # Verificar se existe alguma variável declarada 2 vezes
-        for i in range(len(symbols)):
-            symbol = symbols[i]
-            for j in range(len(symbols)):
-                if i == j:
-                    continue
-                another_symbol = symbols[j]
-                if symbol.identifier == another_symbol.identifier and another_symbol.level >= symbol.level:
-                    return None, {
-                        'code': -1,
-                        'message': 'Símbolo "' + symbol.identifier + '" já foi declarado.'
-                    }
+        _symbol_table = IdentifierTable()
 
         tree: Tree = list(parse_result)[0]
-        # tree.pretty_print()
+        # tree.draw()
         productions = list(tree.productions())
         for i in range(len(productions)):
             item: Production = productions[i]
             print(i, ': ', item)
             if item.lhs().symbol() == 'declaracao_classe':
-                if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_CLASS:
-                    _java_class.class_name = symbols[_symbol_table_index].identifier
-                    _symbol_table_index += 1
-                else:
-                    return None, {
-                        'code': -1,
-                        'message': 'Declaração de classe não encontrada'
-                    }
-            # if item.lhs().symbol() == 'inicio_bloco':
-            #     # _output_lines.append('begin')
-            #     self.indentation = 3
+                nome_class = self._parse_identifier(productions, i+1)
+                _java_class.class_name = nome_class
+                _symbol_table.add_class(nome_class, _level)
             if item.lhs().symbol() == 'fim_bloco':
                 if i != len(productions) - 1:
                     if _current_if_declaration is not None:
@@ -144,36 +125,112 @@ class JavaParser(object):
                             _current_function_declaration.assignments.append(_current_while_declaration)
                         _current_while_declaration = None
                     else:
+                        _level -= 0.1
                         if _current_procedure_declaration is not None:
+                            _param_count = 0
+                            _param_seq = '-'
+                            for param in _current_procedure_declaration.arguments:
+                                _param_seq += param + ', '
+                                _param_count += 1
+                            if _param_seq != '-':
+                                _param_seq = _param_seq[:-2]
+                            method_name = _current_procedure_declaration.procedure_name
+                            if _symbol_table.has_been_declared(method_name, _level):
+                                return None, {
+                                    'code': -1,
+                                    'message': 'Símbolo ' + method_name + ' já foi declarado.'
+                                }, _symbol_table.to_dict()
+                            _symbol_table.add_method(_current_procedure_declaration.procedure_name,
+                                                     'void', _param_count, _param_seq, 'refMethod', _level)
                             _java_class.procedure_declarations.append(_current_procedure_declaration)
                             _current_procedure_declaration = None
                         if _current_function_declaration is not None:
+                            _param_count = 0
+                            _param_seq = '-'
+                            for param in _current_function_declaration.arguments:
+                                _param_seq += param + ', '
+                                _param_count += 1
+                            if _param_seq != '-':
+                                _param_seq = _param_seq[:-2]
+                            method_name = _current_function_declaration.function_name
+                            if _symbol_table.has_been_declared(method_name, _level):
+                                return None, {
+                                    'code': -1,
+                                    'message': 'Símbolo ' + method_name + ' já foi declarado.'
+                                }, _symbol_table.to_dict()
+                            _symbol_table.add_method(_current_function_declaration.function_name,
+                                                     _current_function_declaration.data_type,
+                                                     _param_count, _param_seq, 'refMethod', _level)
                             _java_class.function_declarations.append(_current_function_declaration)
                             _current_function_declaration = None
                         _is_inside_method = False
                 # self.indentation = 0
             if item.lhs().symbol() == 'declaracao_variavel':
-                var_name = symbols[_symbol_table_index].identifier
-                java_data_type = symbols[_symbol_table_index].data_type
-                var_data_type = mapping[java_data_type]
-                var_value = ''
                 j = i + 1
 
-                tipo_constante = productions[j].lhs().symbol()
-                l = j
-                while tipo_constante != 'valor':
-                    l += 1
-                    tipo_constante = productions[l].lhs().symbol()
-                tipo_constante = str(productions[l].rhs()[0])
+                pos_attrib = 2
+                if str(item.rhs()[0]) == 'modificador':
+                    j += 1
+                    pos_attrib += 1
 
-                # encontrar o valor da variavel
-                while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
-                    if productions[j].lhs().symbol() == 'digito' or productions[j].lhs().symbol() == 'separador':
-                        lhs = productions[j].rhs()[0]
-                        var_value += lhs
-                    if productions[j].lhs().symbol() == 'constante_booleana':
-                        var_value = productions[j].rhs()[0]
-                        if java_data_type != 'boolean':
+                var_name = self._parse_identifier(productions, j)
+                java_data_type = str(productions[j].rhs()[0])
+                var_data_type = mapping[java_data_type]
+                var_value = ''
+
+                if str(item.rhs()[pos_attrib]) == 'simbolo_atribuicao':
+                    tipo_constante = productions[j].lhs().symbol()
+                    l = j
+                    while tipo_constante != 'valor':
+                        l += 1
+                        tipo_constante = productions[l].lhs().symbol()
+                    tipo_constante = str(productions[l].rhs()[0])
+
+                    # encontrar o valor da variavel
+                    while productions[j].lhs().symbol() != 'simbolo_fim_instrucao':
+                        if productions[j].lhs().symbol() == 'digito' or productions[j].lhs().symbol() == 'separador':
+                            lhs = productions[j].rhs()[0]
+                            var_value += lhs
+                        if productions[j].lhs().symbol() == 'constante_booleana':
+                            var_value = productions[j].rhs()[0]
+                            if java_data_type != 'boolean':
+                                error_line = 0
+                                for k in range(len(lexemes)):
+                                    if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                            lexemes[k + 2].token == var_value:
+                                        error_line = lexemes[k].line
+                                        break
+                                return None, {
+                                    'code': -1,
+                                    'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                               ' não pode receber valor ' + var_value,
+                                    'line': error_line
+                                }, _symbol_table.to_dict()
+                            break
+                        if productions[j].lhs().symbol() == 'constante_caracter':
+                            if productions[j + 1].lhs().symbol() == 'caracter':
+                                if type(productions[j + 1].rhs()[0]) == Nonterminal:
+                                    var_value = "'" + productions[j + 2].rhs()[0] + "'"
+                                else:
+                                    var_value = "'" + productions[j + 1].rhs()[0] + "'"
+                                if java_data_type != 'char':
+                                    error_line = 0
+                                    for k in range(len(lexemes)):
+                                        if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                                lexemes[k + 2].token == var_value:
+                                            error_line = lexemes[k].line
+                                            break
+                                    return None, {
+                                        'code': -1,
+                                        'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                                   ' não pode receber valor ' + var_value,
+                                        'line': error_line
+                                    }, _symbol_table.to_dict()
+                                break
+                        j += 1
+                    if tipo_constante == 'constante_inteira':
+                        if java_data_type != 'int' and java_data_type != 'short' and java_data_type != 'byte' \
+                                and java_data_type != 'long':
                             error_line = 0
                             for k in range(len(lexemes)):
                                 if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
@@ -186,75 +243,39 @@ class JavaParser(object):
                                 'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
                                            ' não pode receber valor ' + var_value,
                                 'line': error_line
-                            }
-                        break
-                    if productions[j].lhs().symbol() == 'constante_caracter':
-                        if productions[j + 1].lhs().symbol() == 'caracter':
-                            if type(productions[j + 1].rhs()[0]) == Nonterminal:
-                                var_value = "'" + productions[j + 2].rhs()[0] + "'"
-                            else:
-                                var_value = "'" + productions[j + 1].rhs()[0] + "'"
-                            if java_data_type != 'char':
-                                error_line = 0
-                                for k in range(len(lexemes)):
-                                    if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
-                                            lexemes[k + 2].token == var_value:
-                                        print(error_line)
-                                        error_line = lexemes[k].line
-                                        break
-                                return None, {
-                                    'code': -1,
-                                    'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
-                                               ' não pode receber valor ' + var_value,
-                                    'line': error_line
-                                }
-                            break
-                    j += 1
-                if tipo_constante == 'constante_inteira':
-                    if java_data_type != 'int' and java_data_type != 'short' and java_data_type != 'byte' \
-                            and java_data_type != 'long':
-                        error_line = 0
-                        for k in range(len(lexemes)):
-                            if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
-                                    lexemes[k + 2].token == var_value:
-                                print(error_line)
-                                error_line = lexemes[k].line
-                                break
-                        return None, {
-                            'code': -1,
-                            'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
-                                       ' não pode receber valor ' + var_value,
-                            'line': error_line
-                        }
-                else:
-                    if java_data_type != 'float' and java_data_type != 'double':
-                        error_line = 0
-                        for k in range(len(lexemes)):
-                            if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
-                                    lexemes[k + 2].token == var_value:
-                                print(error_line)
-                                error_line = lexemes[k].line
-                                break
-                        return None, {
-                            'code': -1,
-                            'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
-                                       ' não pode receber valor ' + var_value,
-                            'line': error_line
-                        }
-
-                if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_VARIABLE:
-                    _symbol_table_index += 1
-                else:
-                    return None, {
-                        'code': -1,
-                        'message': 'Esperava declaração de variável'
-                    }
-                if len(item.rhs()) == 5:
+                            }, _symbol_table.to_dict()
+                    elif tipo_constante == 'constante_real':
+                        if java_data_type != 'float' and java_data_type != 'double':
+                            error_line = 0
+                            for k in range(len(lexemes)):
+                                if lexemes[k].token == var_name and lexemes[k + 1].token == '=' and \
+                                        lexemes[k + 2].token == var_value:
+                                    print(error_line)
+                                    error_line = lexemes[k].line
+                                    break
+                            return None, {
+                                'code': -1,
+                                'message': 'Variável "' + var_name + '" do tipo ' + java_data_type +
+                                           ' não pode receber valor ' + var_value,
+                                'line': error_line
+                            }, _symbol_table.to_dict()
                     # Declaração com atribuição
                     var_declaration = VariableDeclaration(var_data_type, var_name, var_value)
+                    if _symbol_table.has_been_declared(var_name, _level):
+                        return None, {
+                            'code': -1,
+                            'message': 'Símbolo "' + var_name + '" já foi declarado.'
+                        }, _symbol_table.to_dict()
+                    _symbol_table.add_variable(var_name, java_data_type, var_value, 'ref', _level)
                 else:
                     # Declaração simples
                     var_declaration = VariableDeclaration(var_data_type, var_name)
+                    if _symbol_table.has_been_declared(var_name, _level):
+                        return None, {
+                            'code': -1,
+                            'message': 'Símbolo "' + var_name + '" já foi declarado.'
+                        }, _symbol_table.to_dict()
+                    _symbol_table.add_variable(var_name, java_data_type, '-', 'ref', _level)
                 if _is_inside_method:
                     if _current_function_declaration is not None:
                         _current_function_declaration.local_declarations.append(var_declaration)
@@ -264,28 +285,20 @@ class JavaParser(object):
                     _java_class.variable_declarations.append(var_declaration)
             if item.lhs().symbol() == 'declaracao_metodo':
                 _is_inside_method = True
+                _level += 0.1
+                j = i + 1
+                pos_attrib = 0
+                # Verificar se tem modificador de visibilidade
+                if str(item.rhs()[0]) == 'modificador':
+                    j += 1
+                    pos_attrib += 2
+                identificador_metodo = self._parse_identifier(productions, j)
                 # Com retorno ou sem retorno?
-                if productions[i + 1].lhs().symbol() == 'tipo_dado_sem_retorno':
-                    identificador_metodo = symbols[_symbol_table_index].identifier
-                    if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
-                        _symbol_table_index += 1
-                    else:
-                        return None, {
-                            'code': -1,
-                            'message': 'Esperava declaração de método'
-                        }
+                if productions[j].lhs().symbol() == 'tipo_dado_sem_retorno':
                     # TODO: Support method arguments
                     _current_procedure_declaration = ProcedureDeclaration(identificador_metodo, [])
                 else:
-                    identificador_metodo = symbols[_symbol_table_index].identifier
-                    if symbols[_symbol_table_index].category == IdentifierTable.CATEGORY_METHOD:
-                        _symbol_table_index += 1
-                    else:
-                        return None, {
-                            'code': -1,
-                            'message': 'Esperava declaração de método'
-                        }
-                    _current_function_declaration = FunctionDeclaration(mapping[productions[i + 1].rhs()[0]],
+                    _current_function_declaration = FunctionDeclaration(mapping[str(productions[j].rhs()[pos_attrib])],
                                                                         identificador_metodo)
             if item.lhs().symbol() == 'retorno':
                 if _current_function_declaration is not None:
@@ -366,6 +379,11 @@ class JavaParser(object):
                         variable_name += lhs
                         j += 2
                     j += 1
+                if not _symbol_table.has_been_declared(variable_name, _level):
+                    return None, {
+                        'code': -1,
+                        'message': 'Variável ' + variable_name + ' não foi declarada.'
+                    }, _symbol_table.to_dict()
                 variable_value = ''
                 if productions[j].lhs().symbol() == 'constante_inteira':
                     variable_value = ''
@@ -393,10 +411,12 @@ class JavaParser(object):
                                         VariableAssignment(variable_name, variable_value), _is_else)
             if item.lhs().symbol() == 'lista_parametros':
                 # Verificar se tem parametros
+                # TODO: Check if this really works
                 if len(productions[i].rhs()) > 0:
                     parameter_data_type = productions[i + 1].rhs()[0]
-                    parameter_name = symbols[_symbol_table_index].identifier
-                    _symbol_table_index += 1
+                    parameter_name = self._parse_identifier(productions, i + 1)
+                    # TODO: Add parameter after method
+                    _symbol_table.add_parameter(parameter_name, parameter_data_type, '-', 'r', _level)
                     self._append_assignment(_current_function_declaration, _current_procedure_declaration,
                                             _current_if_declaration, _current_while_declaration,
                                             VariableDeclaration(mapping[parameter_data_type], parameter_name), _is_else)
@@ -459,4 +479,4 @@ class JavaParser(object):
             if item.lhs().symbol() == 'estrutura_else':
                 _is_else = True
 
-        return _java_class, _java_class.to_dict()
+        return _java_class, _java_class.to_dict(), _symbol_table.to_dict()

@@ -3,11 +3,11 @@ from lexeme_table import LexemeTable
 from identifier_table import IdentifierTable
 
 
-def print_lexema_table(lexemas: LexemeTable):
+def print_lexema_table(lexemas: list):
     print()
     print("Tabela de Lexemas")
     table_lexemas = PrettyTable(['Token', 'Classificação', 'Linha'])
-    for lexema in lexemas.get_lexemes():
+    for lexema in lexemas:
         table_lexemas.add_row([lexema.token, lexema.classification, str(lexema.line)])
     print(table_lexemas)
 

@@ -84,6 +84,8 @@ def _append_assignments(indentation: int, method, lines, is_else=False):
 
 
 def get_pascal_equivalent(_java_class: ClassDeclaration):
+    _main_procedure = None
+
     indentation = 3
     # Nome do programa
     pascal_lines = ['program ' + _java_class.class_name + ';', '']
@@ -112,17 +114,27 @@ def get_pascal_equivalent(_java_class: ClassDeclaration):
 
     # Imprime Procedures
     for procedure in _java_class.procedure_declarations:
-        procedure_arguments = _get_arguments(procedure)
-        pascal_lines.append('procedure ' + procedure.procedure_name + '(' + procedure_arguments + ');')
-        _append_local_declarations(procedure, pascal_lines)
-        pascal_lines.append('begin')
-        _append_assignments(indentation, procedure, pascal_lines)
-        pascal_lines.append('end;')
-        pascal_lines.append('')
+        if procedure.procedure_name == 'main':
+            _main_procedure = procedure
+        else:
+            procedure_arguments = _get_arguments(procedure)
+            pascal_lines.append('procedure ' + procedure.procedure_name + '(' + procedure_arguments + ');')
+            _append_local_declarations(procedure, pascal_lines)
+            pascal_lines.append('begin')
+            _append_assignments(indentation, procedure, pascal_lines)
+            pascal_lines.append('end;')
+            pascal_lines.append('')
 
     # Imprime o método Principal
-    pascal_lines.append('begin')
-    pascal_lines.append("   ")
-    pascal_lines.append('end.')
+    if _main_procedure is not None:
+        _append_local_declarations(_main_procedure, pascal_lines)
+        pascal_lines.append('begin')
+        _append_assignments(indentation, _main_procedure, pascal_lines)
+        pascal_lines.append('end.')
+    else:
+        pascal_lines.append('begin')
+        pascal_lines.append('')
+        pascal_lines.append('end.')
+    pascal_lines.append('')
 
     return pascal_lines

@@ -6,7 +6,9 @@ require(['vs/editor/editor.main'], function() {
     java_editor = monaco.editor.create(document.getElementById('source-container'), {
         value: [
             'public class HelloWorld {',
-            '    int ano = 2019;',
+            '    public void main() {',
+            '        int x;',
+            '    }',
             '}'
         ].join('\n'),
         language: 'java',
@@ -26,21 +28,23 @@ require(['vs/editor/editor.main'], function() {
         document.getElementById('file-input').value = '';
         java_editor.setValue([
             'public class HelloWorld {',
-            '    int ano = 2019;',
+            '    public void main() {',
+            '        int x;',
+            '    }',
             '}'
         ].join('\n'))
     });
 
     pascal_editor = monaco.editor.create(document.getElementById('destination-container'), {
         value: [
-            'program HelloWorld;',
-            '',
-            'var',
-            '   ano: integer := 2019;',
-            '',
-            'begin',
-            '',
-            'end.'
+            '{\n',
+            '  Bem-vindo ao Pré-Processador Java-Pascal\n\n',
+            '  Introduza o código Java na área à esquerda (Código-Fonte)\n',
+            '  e clique em "Executar".\n',
+            '  O resultado será mostrado nesta aba (Resultado).\n\n',
+            '  Utilize a opção "Carregar Ficheiro" para ler um\n',
+            '  ficheiro do seu computador.',
+            '\n}'
         ].join('\n'),
         language: 'pascal',
         scrollBeyondLastLine: false,
@@ -57,25 +61,26 @@ function compileJavaCode() {
         body: JSON.stringify(java_editor.getValue()),
         headers: {
             'Content-Type': 'application/json',
-            // "Content-type": "application/x-www-form-urlencoded; charset=UTF-8",
             Accept: 'application/json',
         }})
         .then(res => res.json())
         .then(function (response) {
+            console.log(response);
+            // Workaround para remover a linha de erro anterior
+            java_editor.setValue(java_editor.getValue());
             if (response.code === -1) {
                 document.getElementById('tables-container').style.visibility = 'hidden';
                 pascal_editor.setValue('{ ' + response.message + ' }');
+                // TODO: Adicionar uma caixa de erro
                 if (response.line) {
                     decorations = [];
                     decorations[0] = { range: new monaco.Range(response.line,1,response.line,1), options: { isWholeLine: true, linesDecorationsClassName: 'myLineDecoration' }};
                     if (response.startCol && response.endCol) {
-                        decorations[1] = { range: new monaco.Range(response.line,response.startCol,response.line,response.endCol), options: { inlineClassName: 'myInlineDecoration' }};
+                        decorations[1] = { range: new monaco.Range(response.line,response.startCol+1,response.line,response.endCol+1), options: { inlineClassName: 'myInlineDecoration' }};
                     }
                     java_editor.deltaDecorations([], decorations);
                 }
             } else {
-                // Workaround para remover a linha de erro
-                java_editor.setValue(java_editor.getValue());
                 document.getElementById('tables-container').style.visibility = 'visible';
                 filename = response.java_class.class_name;
                 pascal_editor.setValue(response.result_lines.join('\n'));
